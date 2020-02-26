@@ -1,158 +1,169 @@
 <template>
 
-  <div class="el-table">
 
-    <el-container>
+  <div class="app-container">
 
-      <el-header>
-        <el-button
-          type="primary"
-          size="small"
-          round
-          icon="el-icon-plus"
-          align="left"
-          @click="showAddDialog"
-        >新增角色
-        </el-button>
-        <el-button type="danger" size="small" round icon="el-icon-delete" align="left">批量删除</el-button>
-      </el-header>
-      <el-main>
-        <el-table
-          ref="table"
-          :data="tableData"
-          stripe
-          style="width: 100%"
-          height="500"
-          border
-          show-pagination
-          :search-method="handleSearch"
-          @selection-change="handleSelectionChange"
-        >
-          <el-table-column
-            type="selection"
-            width="80px"
+
+    <div class="filter-container">
+
+      <el-input  v-model="searchValue" placeholder="角色名称" style="width: 200px;" class="filter-item" @keyup.enter.native="handleFilter" />
+
+      <el-button
+        class="filter-item"
+        type="primary"
+        icon="el-icon-plus"
+        @click="showAddDialog"
+      >
+        新增角色
+      </el-button>
+      <el-button class="filter-item" icon="el-icon-delete" type="danger" @click="deleteRoles">批量删除</el-button>
+
+
+    </div>
+
+    <el-table
+      ref="multipleTable"
+      :data="tableData"
+      stripe
+      style="width: 100%"
+      height="500"
+      border
+      show-pagination
+    >
+      <el-table-column
+        type="selection"
+        width="50px"
+      />
+      <el-table-column label="序号" type="index" width="150px" align="center" />
+      <el-table-column
+        prop="roleName"
+        label="角色"
+        width="150px"
+        align="center"
+      />
+      <el-table-column
+        prop="createTime"
+        label="创建时间"
+        width="220px"
+        sortable
+        align="center"
+      />
+      <el-table-column
+        prop="creater"
+        label="创建者"
+        width="150px"
+        align="center"
+      />
+      <el-table-column
+        label="操作"
+        align="center"
+      >
+        <template slot-scope="scope">
+
+          <el-link
+            type="primary"
+            :underline="false"
+            icon="el-icon-edit"
+            size="medium"
+            @click="showEditDialog(scope.row)"
+          >修改
+          </el-link>
+
+          <el-link
+            type="danger"
+            :underline="false"
+            icon="el-icon-delete"
+            size="medium"
+            @click="open(scope.row.id)"
+          >删除
+          </el-link>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <el-pagination
+      :current-page="currPage"
+      :page-sizes="[5, 10, 30, 50]"
+      :page-size="pageSize"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="totalNum"
+      align="center"
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+    />
+
+    <el-dialog title="修改角色" :visible.sync="editDialogVisible" width="30%" @close="editDialogClosed">
+
+      <el-tabs type="border-card" stretch="true">
+        <el-tab-pane label="修改角色信息">
+          <el-form ref="editFormRef" :model="editForm" label-width="70px">
+
+            <el-form-item label="角色名">
+              <el-input v-model="editForm.roleName" />
+            </el-form-item>
+
+            <el-form-item>
+              <el-button size="small" @click="editDialogVisible = false">取 消</el-button>
+              <el-button size="small" type="primary" @click="editRoleInfo">确 定</el-button>
+            </el-form-item>
+          </el-form>
+
+        </el-tab-pane>
+        <el-tab-pane label="修改角色权限">
+
+          <el-form label-width="70px">
+            <el-form-item label="权限" >
+              <el-tree
+                ref="tree"
+                :data="data"
+                show-checkbox
+                node-key="id"
+                :default-expanded-keys="expandKeys"
+                :default-checked-keys="checkKeys"
+                :props="defaultProps"
+              />
+            </el-form-item>
+            <el-form-item>
+              <el-button size="small" @click="editDialogVisible = false">取 消</el-button>
+              <el-button size="small" type="primary" @click="editRoleAuth">确 定</el-button>
+            </el-form-item>
+          </el-form>
+
+
+        </el-tab-pane>
+
+      </el-tabs>
+      <span slot="footer" class="dialog-footer" />
+    </el-dialog>
+    <el-dialog title="新增角色" :visible.sync="addDialogVisible" width="30%" @close="addDialogClosed">
+
+      <el-form ref="roleForm" :model="roleForm" :rules="rules" label-width="100px" class="demo-ruleForm">
+        <el-form-item label="角色名称" prop="roleName">
+          <el-input v-model="roleForm.roleName" />
+        </el-form-item>
+        <el-form-item label="权限">
+
+          <el-tree
+
+            ref="tree"
+            :data="data"
+            show-checkbox
+            node-key="id"
+            :props="defaultProps"
           />
-          <el-table-column label="序号" type="index" width="150px" align="center" />
-          <el-table-column
-            prop="roleName"
-            label="角色"
-            width="150px"
-            align="center"
-          />
-          <el-table-column
-            prop="createTime"
-            label="创建时间"
-            width="220px"
-            sortable
-            align="center"
-          />
-          <el-table-column
-            prop="creater"
-            label="创建者"
-            width="150px"
-            align="center"
-          />
-          <el-table-column
-            label="操作"
-            align="center"
-          >
-            <template slot-scope="scope">
+        </el-form-item>
 
-              <el-link
-                type="primary"
-                :underline="false"
-                icon="el-icon-edit"
-                size="medium"
-                @click="showEditDialog(scope.row)"
-              >修改
-              </el-link>
+        <el-form-item>
+          <el-button size="small" @click="addDialogVisible = false">取 消</el-button>
+          <el-button size="small" type="primary" @click="addRoleInfo('roleForm')">添 加</el-button>
+        </el-form-item>
+      </el-form>
 
-              <el-link
-                type="danger"
-                :underline="false"
-                icon="el-icon-delete"
-                size="medium"
-                @click="open(scope.row.id)"
-              >删除
-              </el-link>
-            </template>
-          </el-table-column>
-        </el-table>
+    </el-dialog>
 
-        <el-pagination
-          :current-page="currPage"
-          :page-sizes="[5, 10, 30, 50]"
-          :page-size="pageSize"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="totalNum"
-          align="center"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        />
-      </el-main>
 
-      <el-dialog title="修改角色" :visible.sync="editDialogVisible" width="30%" @close="editDialogClosed">
-
-        <el-tabs type="border-card" stretch="true">
-          <el-tab-pane label="修改角色信息">
-            <el-form ref="editFormRef" :model="editForm" label-width="70px">
-
-              <el-form-item label="角色名">
-                <el-input v-model="editForm.roleName" />
-              </el-form-item>
-              <!--                <el-form-item label="邮箱" prop="email">-->
-              <!--                    <el-input v-model="editForm.email"></el-input>-->
-              <!--                </el-form-item>-->
-
-            </el-form>
-
-            <el-button size="small" @click="editDialogVisible = false">取 消</el-button>
-            <el-button size="small" type="primary" @click="editRoleInfo">确 定</el-button>
-          </el-tab-pane>
-          <el-tab-pane label="修改角色权限">
-            <el-tree
-              ref="tree"
-              :data="data"
-              show-checkbox
-              node-key="id"
-              :default-expanded-keys="expandKeys"
-              :default-checked-keys="checkKeys"
-              :props="defaultProps"
-            />
-
-            <el-button size="small" @click="editDialogVisible = false">取 消</el-button>
-            <el-button size="small" type="primary" @click="editRoleAuth">确 定</el-button>
-          </el-tab-pane>
-
-        </el-tabs>
-        <span slot="footer" class="dialog-footer" />
-      </el-dialog>
-      <el-dialog title="新增角色" :visible.sync="addDialogVisible" width="30%" @close="addDialogClosed">
-
-        <el-form ref="roleForm" :model="roleForm" :rules="rules" label-width="100px" class="demo-ruleForm">
-          <el-form-item label="角色名称" prop="roleName">
-            <el-input v-model="roleForm.roleName" />
-          </el-form-item>
-          <el-form-item label="权限">
-
-            <el-tree
-
-              ref="tree"
-              :data="data"
-              show-checkbox
-              node-key="id"
-              :props="defaultProps"
-            />
-          </el-form-item>
-        </el-form>
-
-        <el-button size="small" @click="addDialogVisible = false">取 消</el-button>
-        <el-button size="small" type="primary" @click="addRoleInfo('roleForm')">添 加</el-button>
-        <span slot="footer" class="dialog-footer" />
-      </el-dialog>
-
-    </el-container>
   </div>
+
 
 </template>
 
@@ -407,7 +418,6 @@ export default {
       totalNum: 20,
       currPage: 1,
       pageSize: 5,
-      multipleTable: [],
       // 修改用户信息的表单数据
       editForm: {
         userName: '',
@@ -422,10 +432,33 @@ export default {
           { required: true, message: '请输入角色名称', trigger: 'blur' },
           { min: 1, max: 15, message: '长度在 1 到 15 个字符', trigger: 'blur' }
         ]
-      }
+      },
+      searchValue:'',
+      ids:[],
+      listLoading:true,
     }
   },
   methods: {
+
+
+    deleteRoles(){
+
+      this.$refs.multipleTable.selection.forEach(item =>{
+        this.ids.push(item.id)
+      })
+      console.log(this.ids);
+      this.ids=[]
+    },
+
+    handleFilter() {
+
+      console.log(this.searchValue)
+      this.listLoading = true
+      setTimeout(() => {
+        this.listLoading = false
+      }, 1.5 * 1000)
+    },
+
     handleSizeChange(val) {
       console.log(`每页 ${val} 条`)
     },
@@ -521,7 +554,7 @@ export default {
       this.$refs[formName].validate((valid) => {
         if (valid) {
           this.$refs[formName].resetFields()
-          this.$refs.tree.getCheckedKeys() // 获取的选择权限信息
+          console.log(this.$refs.tree.getCheckedKeys() )// 获取的选择权限信息
           // todo 请求
           this.$message({
             message: '添加角色信息成功',

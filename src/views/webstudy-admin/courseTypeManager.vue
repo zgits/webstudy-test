@@ -1,32 +1,29 @@
 <template>
 
-  <div class="el-table">
 
-    <el-container>
+  <div class="app-container">
 
-      <el-header>
-        <el-button
-          type="primary"
-          size="small"
-          round
-          icon="el-icon-plus"
-          align="left"
-          @click="showAddDialog"
-        >新增角色
-        </el-button>
-        <el-button type="danger" size="small" round icon="el-icon-delete" align="left">批量删除</el-button>
-      </el-header>
-      <el-main>
+
+    <div class="filter-container">
+
+      <el-input  v-model="searchValue" placeholder="名称" style="width: 200px;" class="filter-item" @keyup.enter.native="handleFilter" />
+
+
+      <el-button class="filter-item" icon="el-icon-plus" type="primary" @click="showAddDialog">新增</el-button>
+
+      <el-button class="filter-item" icon="el-icon-delete" type="danger" @click="deleteType">批量删除</el-button>
+
+
+    </div>
+
         <el-table
-          ref="table"
+          ref="multipleTable"
           :data="tableData"
           stripe
           style="width: 100%"
           height="500"
           border
           show-pagination
-          :search-method="handleSearch"
-          @selection-change="handleSelectionChange"
         >
           <el-table-column
             type="selection"
@@ -89,69 +86,34 @@
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
         />
-      </el-main>
 
-      <el-dialog title="修改角色" :visible.sync="editDialogVisible" width="30%" @close="editDialogClosed">
+      <el-dialog title="添加类别" :visible.sync="addDialogVisible" width="30%">
 
-        <el-tabs type="border-card" stretch="true">
-          <el-tab-pane label="修改角色信息">
-            <el-form ref="editFormRef" :model="editForm" label-width="70px">
-
-              <el-form-item label="角色名">
-                <el-input v-model="editForm.roleName" />
-              </el-form-item>
-              <!--                <el-form-item label="邮箱" prop="email">-->
-              <!--                    <el-input v-model="editForm.email"></el-input>-->
-              <!--                </el-form-item>-->
-
-            </el-form>
-
-            <el-button size="small" @click="editDialogVisible = false">取 消</el-button>
-            <el-button size="small" type="primary" @click="editRoleInfo">确 定</el-button>
-          </el-tab-pane>
-          <el-tab-pane label="修改角色权限">
-            <el-tree
-              ref="tree"
-              :data="data"
-              show-checkbox
-              node-key="id"
-              :default-expanded-keys="expandKeys"
-              :default-checked-keys="checkKeys"
-              :props="defaultProps"
-            />
-
-            <el-button size="small" @click="editDialogVisible = false">取 消</el-button>
-            <el-button size="small" type="primary" @click="editRoleAuth">确 定</el-button>
-          </el-tab-pane>
-
-        </el-tabs>
-        <span slot="footer" class="dialog-footer" />
-      </el-dialog>
-      <el-dialog title="新增角色" :visible.sync="addDialogVisible" width="30%" @close="addDialogClosed">
-
-        <el-form ref="roleForm" :model="roleForm" :rules="rules" label-width="100px" class="demo-ruleForm">
-          <el-form-item label="角色名称" prop="roleName">
-            <el-input v-model="roleForm.roleName" />
+        <el-form ref="addTypeForm" :model="addTypeForm" label-width="80px">
+          <el-form-item label="名称">
+            <el-input v-model="addTypeForm.typeName"></el-input>
           </el-form-item>
-          <el-form-item label="权限">
+          <el-form-item label="类型">
+            <el-select  v-model="isType" placeholder="请选择类型" @change="showType">
+              <el-option label="方向" value="0"></el-option>
+              <el-option label="类别" value="1"></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="所属方向" v-if="isType==='1'">
+            <el-select v-model="parentId" placeholder="状态" clearable @change="">
+              <el-option v-for="item in parent" :key="item.id" :label="item.typeName" :value="item.id"></el-option>
 
-            <el-tree
+            </el-select>
+          </el-form-item>
 
-              ref="tree"
-              :data="data"
-              show-checkbox
-              node-key="id"
-              :props="defaultProps"
-            />
+          <el-form-item>
+            <el-button type="primary" @click="">立即创建</el-button>
+            <el-button>取消</el-button>
           </el-form-item>
         </el-form>
 
-        <el-button size="small" @click="addDialogVisible = false">取 消</el-button>
-        <el-button size="small" type="primary" @click="addRoleInfo('roleForm')">添 加</el-button>
-        <span slot="footer" class="dialog-footer" />
       </el-dialog>
 
-    </el-container>
   </div>
 
 </template>
@@ -407,25 +369,51 @@ export default {
       totalNum: 20,
       currPage: 1,
       pageSize: 5,
-      multipleTable: [],
       // 修改用户信息的表单数据
       editForm: {
         userName: '',
         phone: ''
         // mobile: ''
       },
-      roleForm: {
-        roleName: ''
+
+      typeVisible:false,
+      searchValue:'',
+      ids:[],
+      addTypeForm:{
+        typeName:'',
+        parentId:''
       },
-      rules: {
-        roleName: [
-          { required: true, message: '请输入角色名称', trigger: 'blur' },
-          { min: 1, max: 15, message: '长度在 1 到 15 个字符', trigger: 'blur' }
-        ]
-      }
+      parent:[
+
+      ],//方向
+      parentId:'',
+      isType:'0',
+
     }
   },
   methods: {
+
+    showType(value){
+      console.log(value)
+      this.typeVisible = value==0?true:false;
+    },
+
+    handleFilter() {
+
+      console.log(this.searchValue)
+      this.listLoading = true
+      setTimeout(() => {
+        this.listLoading = false
+      }, 1.5 * 1000)
+    },
+
+    deleteType(){
+      this.$refs.multipleTable.selection.forEach(item =>{
+        this.ids.push(item.id)
+      })
+      console.log(this.ids);
+      this.ids=[]
+    },
     handleSizeChange(val) {
       console.log(`每页 ${val} 条`)
     },
@@ -468,6 +456,20 @@ export default {
     },
     showAddDialog() {
       this.addDialogVisible = true
+      this.parent=[
+        {
+          id:1,
+          typeName:'前端'
+        },
+        {
+          id:2,
+          typeName:'后端'
+        },
+        {
+          id:3,
+          typeName:'云计算'
+        },
+      ]
     },
     editDialogClosed() {
       // 表单内容重置为空

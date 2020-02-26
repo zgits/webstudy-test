@@ -1,22 +1,43 @@
 <template>
 
-  <div class="el-table">
+  <div class="app-container">
 
-    <el-container class="el-container">
-      <el-header align="left" style="background-color: white">
-        <el-button>新增</el-button>
-      </el-header>
-      <el-main>
+
+    <div class="filter-container">
+
+      <el-input  v-model="searchValue" placeholder="课程名称" style="width: 200px;" class="filter-item" @keyup.enter.native="handleFilter" />
+
+      <el-select class="filter-item" v-model="levelValue" placeholder="难度" clearable @change="getValueByLevel">
+        <el-option v-for="item in level" :key="item.levelnum" :label="item.label" :value="item.levelnum"></el-option>
+
+      </el-select>
+
+      <el-select class="filter-item" v-model="statusValue" placeholder="状态" clearable @change="getValueByStatus">
+        <el-option v-for="item in statusArray" :key="item.status" :label="item.label" :value="item.status"></el-option>
+
+      </el-select>
+
+      <el-button
+        class="filter-item"
+        type="primary"
+        icon="el-icon-upload"
+        @click="showAddDialog"
+      >
+        上传课程
+      </el-button>
+      <el-button class="filter-item" icon="el-icon-delete" type="danger" @click="deleteCourse">批量删除</el-button>
+
+
+    </div>
+
         <el-table
-          ref="table"
+          ref="multipleTable"
           :data="tableData"
           stripe
           style="width: 100%"
           height="500"
           border
           show-pagination
-          :search-method="handleSearch"
-          @selection-change="handleSelectionChange"
         >
           <el-table-column
             type="selection"
@@ -179,16 +200,6 @@
             </template>
           </el-table-column>
         </el-table>
-        <el-button-group>
-          <el-button size="small" :type="online" :loading="onloading" @click="queryCourse(2)">已上线<i
-            class="el-icon-arrow-right"
-          /></el-button>
-          <el-button size="small" :type="downline" :loading="downloading" @click="queryCourse(3)">下线<i
-            class="el-icon-arrow-right"
-          /></el-button>
-          <el-button size="small" :type="all" :loading="allloading" @click="queryCourse()">全部</el-button>
-
-        </el-button-group>
 
         <el-pagination
           :current-page="currPage"
@@ -200,8 +211,6 @@
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
         />
-      </el-main>
-    </el-container>
 
     <el-dialog title="修改课程信息" :visible.sync="editDialogVisible" width="40%" @close="editDialogClosed">
 
@@ -264,20 +273,16 @@
             <img width="100%" :src="dialogImageUrl" alt="">
           </el-dialog>
         </el-form-item>
-
-        <!--                <el-form-item label="邮箱" prop="email">-->
-        <!--                    <el-input v-model="editForm.email"></el-input>-->
-        <!--                </el-form-item>-->
-
+        <el-form-item>
+          <el-button size="small" @click="editDialogVisible = false">取 消</el-button>
+          <el-button size="small" type="primary" @click="editRoleInfo">确 定</el-button>
+        </el-form-item>
       </el-form>
-
-      <el-button size="small" @click="editDialogVisible = false">取 消</el-button>
-      <el-button size="small" type="primary" @click="editRoleInfo">确 定</el-button>
 
       <span slot="footer" class="dialog-footer" />
     </el-dialog>
 
-    <el-dialog title="课程详情" :visible.sync="showDialogVisible" width="40%" @close="editDialogClosed">
+    <el-dialog title="课程详情" :visible.sync="showDialogVisible" width="40%">
 
       <div class="custom-tree-container">
         <div class="block">
@@ -418,7 +423,6 @@ export default {
       totalNum: 20,
       currPage: 1,
       pageSize: 5,
-      multipleTable: [],
       // 修改用户信息的表单数据
       editForm: {
         level: '',
@@ -426,6 +430,8 @@ export default {
 
         // mobile: ''
       },
+      ids:[],
+      searchValue:'',
 
       // 文件上传
       dialogImageUrl: '',
@@ -438,13 +444,73 @@ export default {
       all: '',
       onloading: false,
       downloading: false,
-      allloading: false
+      allloading: false,
+
+      level:[
+        {
+          levelnum:1,
+          label:'入门级'
+        },
+        {
+          levelnum:2,
+          label:'初级'
+        },
+        {
+          levelnum:3,
+          label:'中级'
+        },
+        {
+          levelnum:4,
+          label:'高级'
+        },
+      ],
+      levelValue:[],
+
+      statusArray:[
+        {
+          status:2,
+          label:'已上架'
+        },
+        {
+          status:3,
+          label:'已下架'
+        }
+      ],
+      statusValue:[],
 
     }
   },
   mounted() {
   },
   methods: {
+
+    getValueByLevel(level){
+      console.log(level)
+    },
+
+    getValueByStatus(status){
+      console.log(status)
+    },
+
+    handleFilter() {
+
+      console.log(this.searchValue)
+      this.listLoading = true
+      setTimeout(() => {
+        this.listLoading = false
+      }, 1.5 * 1000)
+    },
+
+    deleteCourse(){
+      this.$refs.multipleTable.selection.forEach(item =>{
+        this.ids.push(item.id)
+      })
+      console.log(this.ids);
+      this.ids=[]
+    },
+
+
+
     queryCourse(status) {
       // this.loading=true;
       // this.loading=false;
@@ -563,10 +629,6 @@ export default {
     },
     showAddDialog() {
       this.addDialogVisible = true
-    },
-    editDialogClosed() {
-      // 表单内容重置为空
-      this.$refs.editFormRef.resetFields() // 通过ref引用调用resetFields方法
     },
     editRoleInfo() {
       // todo 请求

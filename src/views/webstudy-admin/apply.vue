@@ -1,19 +1,30 @@
 <template>
 
-  <div class="el-table">
+  <div class="app-container">
 
-    <el-container>
-      <el-main>
+    <div class="filter-container">
+
+      <el-input  v-model="searchValue" placeholder="名称" style="width: 200px;" class="filter-item" @keyup.enter.native="handleFilter" />
+
+      <el-select class="filter-item" v-model="statusValue" placeholder="全部" clearable @change="getValueByStatus">
+        <el-option v-for="item in statusArray" :key="item.statusNum" :label="item.label" :value="item.statusNum"></el-option>
+
+      </el-select>
+
+
+      <el-button class="filter-item" icon="el-icon-delete" type="danger" @click="deleteApply">批量删除</el-button>
+
+
+    </div>
+
         <el-table
-          ref="table"
+          ref="multipleTable"
           :data="tableData"
           stripe
           style="width: 100%"
           height="500"
           border
           show-pagination
-          :search-method="handleSearch"
-          @selection-change="handleSelectionChange"
         >
           <el-table-column
             type="selection"
@@ -104,19 +115,6 @@
             </template>
           </el-table-column>
         </el-table>
-        <el-button-group>
-          <el-button size="small" :type="applying" :loading="loading" @click="queryApply(1)">未审核<i
-            class="el-icon-arrow-right"
-          /></el-button>
-          <el-button size="small" :type="failbutton" :loading="failloading" @click="queryApply(3)">打回<i
-            class="el-icon-arrow-right"
-          /></el-button>
-          <el-button size="small" :type="passbutton" :loading="passloading" @click="queryApply(2)">审核通过<i
-            class="el-icon-arrow-right"
-          /></el-button>
-          <el-button size="small" :type="allbutton" :loading="allloading" @click="queryApply()">全部</el-button>
-
-        </el-button-group>
 
         <el-pagination
           :current-page="currPage"
@@ -128,9 +126,6 @@
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
         />
-      </el-main>
-
-    </el-container>
 
   </div>
 </template>
@@ -181,13 +176,33 @@ export default {
       totalNum: 20,
       currPage: 1,
       pageSize: 5,
-      multipleTable: [],
       // 修改用户信息的表单数据
       editForm: {
         userName: '',
         phone: ''
         // mobile: ''
       },
+
+      ids:[],
+      searchValue:'',
+
+      statusValue:[],
+
+      statusArray:[
+        {
+          statusNum:1,
+          label:'未审核',
+        },
+        {
+          statusNum:2,
+          label:'审核通过'
+        },
+        {
+          statusNum:3,
+          label:'审核失败'
+        },
+      ],
+
       applying: 'primary',
       failbutton: '',
       passbutton: '',
@@ -201,6 +216,35 @@ export default {
   mounted() {
   },
   methods: {
+
+    handleFilter() {
+
+      console.log(this.searchValue)
+      this.listLoading = true
+      setTimeout(() => {
+        this.listLoading = false
+      }, 1.5 * 1000)
+    },
+    getIds(){
+      this.$refs.multipleTable.selection.forEach(item =>{
+        this.ids.push(item.id)
+      })
+      console.log(this.ids);
+    },
+
+    deleteApply(){
+
+
+      this.getIds()
+      console.log(this.ids)
+      this.ids=[];
+    },
+
+    getValueByStatus(status){
+      console.log(status)
+    },
+
+
     queryApply(status) {
       // this.loading=true;
       // this.loading=false;
@@ -268,7 +312,7 @@ export default {
       console.log(`当前页: ${val}`)
     },
 
-    doApply(applyId, status) {
+    doApply(applyIds, status) {
       this.$prompt('备注', {
         confirmButtonText: '确定',
         cancelButtonText: '取消'
@@ -277,7 +321,7 @@ export default {
 
         this.$message({
           type: 'success',
-          message: '填写备注' + value + applyId + status
+          message: '填写备注' + value + applyIds + status
         })
       }).catch(() => {
         this.$message({

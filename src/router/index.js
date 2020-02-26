@@ -206,6 +206,23 @@ export const asyncRoutes = [
       }
     ]
   },
+  {
+    path: '/message',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        component: () => import('@/views/webstudy-admin/message'),
+        name: '反馈',
+        meta: {
+          title: '反馈',
+          icon: 'message',
+          affix: true
+        }
+      }
+    ]
+  },
+
 
   {
     path: '/permission',

@@ -1,20 +1,24 @@
 <template>
 
-  <div class="el-table">
+  <div class="app-container">
 
-    <el-container>
 
-      <el-main>
+    <div class="filter-container">
+
+      <el-input  v-model="searchValue" placeholder="用户名/手机号" style="width: 200px;" class="filter-item" @keyup.enter.native="this.handleFilter" />
+      <el-button class="filter-item" icon="el-icon-delete" type="danger" @click="deleteUsers">批量删除</el-button>
+    </div>
+
+
+
         <el-table
-          ref="table"
           :data="tableData"
           stripe
           style="width: 100%"
           height="500"
           border
           show-pagination
-          :search-method="handleSearch"
-          @selection-change="handleSelectionChange"
+          ref="multipleTable"
         >
           <el-table-column
             type="selection"
@@ -124,6 +128,16 @@
                   @click="open(scope.row.id)"
                 />
               </el-tooltip>
+
+              <el-tooltip class="item" effect="dark" content="重置密码" placement="bottom">
+                <el-button
+                  type="warning"
+                  icon="el-icon-key"
+                  size="small"
+                  circle
+                  @click="resetPassword(scope.row.id)"
+                />
+              </el-tooltip>
             </template>
           </el-table-column>
         </el-table>
@@ -138,7 +152,6 @@
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
         />
-      </el-main>
 
       <el-dialog title="修改用户" :visible.sync="editDialogVisible" width="30%" @close="editDialogClosed">
 
@@ -156,19 +169,46 @@
                 <el-input v-model="editForm.phone" />
               </el-form-item>
 
+
+              <el-form-item>
+                <el-button @click="editDialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="editUserInfo">确 定</el-button>
+              </el-form-item>
             </el-form>
+
           </el-tab-pane>
 
-          <el-tab-pane label="修改密码" />
-          <el-tab-pane label="更改角色" />
+          <el-tab-pane label="更改角色" >
+
+            <el-form label-width="70px">
+              <el-form-item label="角色">
+                <el-select
+                  v-model="roles"
+                  multiple
+                  placeholder="请选择"
+                  style="width: 270px"
+                  >
+                  <el-option
+                    v-for="item in allRoles"
+                    :key="item.id"
+                    :label="item.roleName"
+                    :value="item.id">
+                  </el-option>
+                </el-select>
+
+              </el-form-item>
+              <el-form-item>
+                <el-button @click="editDialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="editUserRole">确 定</el-button>
+              </el-form-item>
+            </el-form>
+
+
+          </el-tab-pane>
         </el-tabs>
-        <span slot="footer" class="dialog-footer">
-          <el-button @click="editDialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="editUserInfo">确 定</el-button>
-        </span>
+
       </el-dialog>
 
-    </el-container>
   </div>
   <!--    修改用户信息的对话框-->
 
@@ -284,13 +324,32 @@ export default {
       totalNum: 20,
       currPage: 1,
       pageSize: 5,
-      multipleTable: [],
+      listLoading:true,
+      searchValue:'',
+      ids: [],
       // 修改用户信息的表单数据
       editForm: {
         userName: '',
         phone: ''
         // mobile: ''
-      }
+      },
+      roles:[2,3
+      ],
+      allRoles:[
+        {
+          id:1,
+          roleName:'dev'
+        },
+        {
+          id:2,
+          roleName:'test1'
+        },
+        {
+          id:3,
+          roleName:'test2'
+        },
+      ],
+
     }
   },
   mounted() {
@@ -299,6 +358,40 @@ export default {
     }
   },
   methods: {
+
+    resetPassword(userId){
+      this.$prompt('请输入新密码', '重置密码', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputType:'password'
+      }).then(({ value }) => {
+        this.$message({
+          type: 'success',
+          message: '重置成功'
+        });
+      }).catch(() => {
+
+      });
+    },
+
+    deleteUsers(){
+
+      this.$refs.multipleTable.selection.forEach(item =>{
+        this.ids.push(item.id)
+      })
+      console.log(this.ids);
+      this.ids=[]
+    },
+    editUserRole(){
+
+      this.$message({
+        message: '修改用户信息成功',
+        type: 'success',
+        offset: 150
+      })
+
+      this.editDialogVisible = false
+    },
     changeStatus: function(status, userId) {
       console.log(status)
       console.log(userId)
@@ -376,7 +469,15 @@ export default {
       this.editDialogVisible = false
       // 重新发起请求用户列表
       // this.getUserList()
-    }
+    },
+    handleFilter() {
+
+      console.log(this.searchValue)
+      this.listLoading = true
+      setTimeout(() => {
+        this.listLoading = false
+      }, 1.5 * 1000)
+    },
 
   }
 
