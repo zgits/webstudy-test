@@ -180,6 +180,14 @@ export const asyncRoutes = [
         }
       },
       {
+        path: 'addCourse',
+        component: () => import('@/views/webstudy-admin/addCourse'),
+        name: '新增课程',
+        meta: {
+          title: '新增管理'
+        }
+      },
+      {
         path: 'typeManager',
         component: () => import('@/views/webstudy-admin/courseTypeManager'),
         name: '分类管理',

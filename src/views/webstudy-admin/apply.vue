@@ -4,7 +4,7 @@
 
     <div class="filter-container">
 
-      <el-input  v-model="searchValue" placeholder="名称" style="width: 200px;" class="filter-item" @keyup.enter.native="handleFilter" />
+      <el-input  v-model="searchValue" placeholder="内容" style="width: 200px;" class="filter-item" @keyup.enter.native="handleFilter" />
 
       <el-select class="filter-item" v-model="statusValue" placeholder="全部" clearable @change="getValueByStatus">
         <el-option v-for="item in statusArray" :key="item.statusNum" :label="item.label" :value="item.statusNum"></el-option>

@@ -17,6 +17,12 @@
 
       </el-select>
 
+
+      <el-select class="filter-item" v-model="direValue" placeholder="类别" clearable @change="getValueByDire">
+        <el-option v-for="item in direArray" :key="item.id" :label="item.name" :value="item.id"></el-option>
+
+      </el-select>
+
       <el-button
         class="filter-item"
         type="primary"
@@ -478,6 +484,24 @@ export default {
       ],
       statusValue:[],
 
+
+      direArray:[
+        {
+          name:'前端',
+          id:1
+        },
+        {
+          name:'后端',
+          id:2,
+        },
+        {
+          name:'java',
+          id:3
+        }
+      ],
+      direValue:[],
+
+
     }
   },
   mounted() {
@@ -490,6 +514,10 @@ export default {
 
     getValueByStatus(status){
       console.log(status)
+    },
+
+    getValueByDire(id){
+      console.log(id)
     },
 
     handleFilter() {
