@@ -75,17 +75,23 @@
         <el-col :span="8">
           <el-card class="box-card">
             <div slot="header" class="clearfix">
-              <span>Share</span>
+              <span>新建章节</span>
             </div>
             <div class="component-item" style="height:420px;">
-              <dropdown-menu :items="articleList" style="margin:0 auto;" title="系列文章" />
+              <el-button @click="add">新增章节</el-button>
+
+
+              <div v-for="(d,index) in counter" :key="index">
+                <div>我是一个组件</div>
+
+              </div>
             </div>
           </el-card>
         </el-col>
         <el-col :span="8">
           <el-card class="box-card">
             <div slot="header" class="clearfix">
-              <span>Share</span>
+              <span>编辑章节</span>
             </div>
             <div class="component-item" style="height:420px;">
               <dropdown-menu :items="articleList" style="margin:0 auto;" title="系列文章" />
@@ -112,12 +118,13 @@
 </template>
 
 <script>
+
     export default {
         name: "addCourse",
       data() {
         return {
           active: 0,
-
+          counter:[],
           editForm: {
             level: '',
             className: ''
@@ -130,6 +137,9 @@
       methods: {
         next() {
           if (this.active++ > 2) this.active = 0;
+        },
+        add(){
+          this.counter.push({});
         }
       }
     }
