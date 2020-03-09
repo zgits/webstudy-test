@@ -3,7 +3,6 @@
     <el-steps :active="active" process-status="finish" finish-status="success">
       <el-step title="课程信息"></el-step>
       <el-step title="详细信息"></el-step>
-      <el-step title="步骤 3"></el-step>
     </el-steps>
 
 
@@ -26,7 +25,7 @@
       </el-form-item>
       <el-form-item label="封面">
         <el-upload
-          limit="1"
+          limit=1
           action="#"
           list-type="picture-card"
           :auto-upload="false"
@@ -58,9 +57,12 @@
                   @click="handleRemove(file)"
                 >
                   <i class="el-icon-delete"/>
+
                 </span>
               </span>
           </div>
+
+          <div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>
         </el-upload>
         <el-dialog :visible.sync="dialogVisible">
           <img width="100%" :src="dialogImageUrl" alt="">
@@ -77,18 +79,6 @@
           </div>
           <div class="component-item" style="height:420px;">
             <el-button style="width: 100%;" size="medium" type="primary" @click="add">新增章节</el-button>
-
-            <!--              <div  v-for="(d,index) in counter" :key="index">-->
-            <!--                <div class="board-item">-->
-            <!--                  <i  class="el-icon-plus" @click="addChapter"></i>-->
-            <!--                  第{{index+1}}章：标题-->
-
-            <!--                  </div>-->
-            <!--                <div v-for="(d,indexChild) in children" :key="indexChild">-->
-            <!--                  {{index+1}}-{{indexChild+1}}: 子标题-->
-            <!--                </div>-->
-
-            <!--              </div>-->
 
 
             <div class="custom-tree-container">
@@ -125,29 +115,48 @@
         </el-card>
       </el-col>
       <el-col :span="8">
-        <el-card class="box-card">
+        <el-card class="box-card" style="width: 460px">
           <div slot="header" class="clearfix">
             <span>编辑章节</span>
           </div>
           <div class="component-item" style="height:420px;">
 
-            <el-input @input="changeValue" v-model="input" placeholder='请输入内容' ></el-input>
+
+            <el-form label-width="50px" v-if="this.data.length>0">
+              <el-form-item label="标题">
+                <el-input @input="changeValue" v-model="input" placeholder='请输入内容' ></el-input>
+
+              </el-form-item>
+
+              <el-form-item label="视频资源">
+                <el-upload
+                  drag
+                  action="https://jsonplaceholder.typicode.com/posts/"
+                  multiple>
+                  <i class="el-icon-upload"></i>
+                  <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                  <div class="el-upload__tip" slot="tip">只能上传视频文件在这里</div>
+                </el-upload>
+
+              </el-form-item>
+            </el-form>
+
+
 
 
 
           </div>
         </el-card>
       </el-col>
-      <el-col :span="8">
-        <el-card class="box-card">
-          <div slot="header" class="clearfix">
-            <span>Share</span>
-          </div>
-          <div class="component-item" style="height:420px;">
-            <dropdown-menu :items="articleList" style="margin:0 auto;" title="系列文章"/>
-          </div>
-        </el-card>
-      </el-col>
+<!--      <el-col :span="8">-->
+<!--        <el-card class="box-card">-->
+<!--          <div slot="header" class="clearfix">-->
+<!--            <span>Share</span>-->
+<!--          </div>-->
+<!--          <div class="component-item" style="height:420px;">-->
+<!--          </div>-->
+<!--        </el-card>-->
+<!--      </el-col>-->
     </el-row>
 
 
@@ -180,7 +189,7 @@
 
     methods: {
       next() {
-        if (this.active++ > 2) this.active = 0;
+        if (this.active++ > 1) this.active = 0;
       },
       add() {
 
