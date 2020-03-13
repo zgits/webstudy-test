@@ -1,0 +1,128 @@
+<template>
+  <div class="nav-content">
+    <div class="tags">
+      <div v-for="(tags,index) in content.tags" :key="index" class="tags-item">
+        <h2 class="title-box">
+          <span class="title">{{ tags.subtitle }}</span>
+          <span class="line" />
+        </h2>
+        <ul class="list">
+          <li v-for="(tag, index) in tags.list" :key="index" class="tag">
+            {{ tag }}
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="nav-course">
+      <div v-for="(course,index) in content.course" :key="index" class="course-item">
+        <div class="img-box">
+          <img :src="course.img" width="64" height="42" alt="">
+        </div>
+        <div class="course-content">
+          <h2 class="title ellipsis">
+            {{ course.title }}
+          </h2>
+          <p class="information">
+            <span v-if="course.money >0" class="money">¥{{ course.money }} / </span>
+            <span>{{ course.rank }} / </span>
+            <span>
+              <i class="iconfont user-icon">&#xe607;</i>
+              {{ course.number }}
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+export default {
+  props: {
+    content: {
+      type: Object,
+      required: true
+    }
+  }
+}
+</script>
+<style lang="stylus" scoped>
+  .nav-content
+    z-index: 999;
+    position: absolute;
+    top: 0;
+    left: 216px;
+    width: 768px;
+    height: 444px;
+    background-color: #fff;
+    .tags
+      position: relative;
+      padding: 36px 48px 32px;
+      .tags-item
+        .title-box
+          display: flex;
+          align-items: center;
+          margin-bottom: 20px;
+          color: #f01414;
+          font-size: 14px;
+          line-height: 24px;
+          font-weight: 700;
+          .title
+            margin-right: 20px;
+          .line
+            flex: 1;
+            height: 1px;
+            background-color: #eff1f0;
+        .list
+          .tag
+            display: inline-block;
+            margin-right: 16px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: #4d555d;
+            cursor: pointer;
+            &:hover
+              color: #f01414;
+    .nav-course
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 36px 0 0 48px;
+      background-color: #F8FAFC;
+      .course-item
+        flex: 0 0 50%;
+        width: 50%;
+        display: flex;
+        align-items: center;
+        margin-bottom: 36px;
+        cursor:pointer;
+        .img-box
+          flex: 0 0 64px;
+          margin-right: 16px;
+          img-box(64px, 42px);
+          & > img
+            border-radius: 4px;
+        .course-content
+          flex: 1;
+          .title
+            font-size: 12px;
+            line-height: 24px;
+            color: #1c1f21;
+          .information
+            color: #4d555d;
+            font-size: 12px;
+            line-height: 20px;
+            letter-spacing: 1px;
+            .money
+              font-size: 12px;
+              line-height: 20px;
+              font-weight: 700;
+            .user-icon
+              margin-right: -3px;
+              font-size: 14px;
+              font-weight: 700;
+</style>
