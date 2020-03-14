@@ -71,11 +71,6 @@ export const constantRoutes = [
     component: () => import('@/views/error-page/401'),
     hidden: true
   },
-  {
-    path: '/home',
-    component: () => import('@/views/webstudy/home'),
-    name: 'true'
-  },
 
   {
     path: '/',
