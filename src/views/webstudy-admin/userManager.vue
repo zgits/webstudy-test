@@ -6,7 +6,11 @@
     <div class="filter-container">
 
       <el-input  v-model="searchValue" placeholder="用户名/手机号" style="width: 200px;" class="filter-item" @keyup.enter.native="this.handleFilter" />
+
+      <el-button class="filter-item" icon="el-icon-circle-plus-outline" type="primary" @click="addDialogVisible=true">添加用户</el-button>
+
       <el-button class="filter-item" icon="el-icon-delete" type="danger" @click="deleteUsers">批量删除</el-button>
+
     </div>
 
 
@@ -208,6 +212,37 @@
         </el-tabs>
 
       </el-dialog>
+      <el-dialog title="新增用户" :visible.sync="addDialogVisible" width="30%" @close="addDialogClosed">
+
+        <el-tabs type="border-card">
+          <el-tab-pane label="用户信息">
+            <el-form ref="addForm" :model="addForm" label-width="70px">
+
+              <el-form-item label="用户名">
+                <el-input v-model="addForm.userName" />
+              </el-form-item>
+              <!--                <el-form-item label="邮箱" prop="email">-->
+              <!--                    <el-input v-model="editForm.email"></el-input>-->
+              <!--                </el-form-item>-->
+              <el-form-item label="手机" prop="phone">
+                <el-input v-model="addForm.phone" />
+              </el-form-item>
+
+              <el-form-item label="密码" prop="password">
+                <el-input v-model="addForm.password" show-password/>
+              </el-form-item>
+
+              <el-form-item>
+                <el-button @click="addDialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="addUser">确 定</el-button>
+              </el-form-item>
+            </el-form>
+
+          </el-tab-pane>
+
+        </el-tabs>
+
+      </el-dialog>
 
   </div>
   <!--    修改用户信息的对话框-->
@@ -216,7 +251,9 @@
 
 <script>
 
-export default {
+  import {getAllUsers} from "@/api/userManager";
+
+  export default {
   name: 'UserManager',
   data() {
     const item = {
@@ -230,97 +267,9 @@ export default {
       registerTime: '2019-12-11'
     }
     return {
-      tableData: [
-        {
-          id: '12',
-          phone: '11525826',
-          userName: '张家烨',
-          imagePath: 'http://pic.baike.soso.com/p/20131221/20131221152446-229545202.jpg',
-          enableComment: '2',
-          enableLogin: '1',
-          duration: '75h45m48s',
-          roles: [
-            'test',
-            'test2'
-          ],
-          registerTime: '2019-12-11'
-        },
-        {
-          id: '122',
-          phone: '11525826',
-          userName: '张靖',
-          imagePath: 'http://pic.baike.soso.com/p/20131221/20131221152446-229545202.jpg',
-          enableComment: '2',
-          enableLogin: '1',
-          duration: '75h04m48s',
-          roles: [
-            'test',
-            'test2'
-          ],
-          registerTime: '2019-11-11'
-        },
-        {
-          id: '13',
-          phone: '11525826',
-          userName: '王小虎',
-          imagePath: 'http://pic.baike.soso.com/p/20131221/20131221152446-229545202.jpg',
-          enableComment: '2',
-          enableLogin: '1',
-          duration: '7h45m48s',
-          registerTime: '2019-12-10'
-        },
-        {
-          id: '123',
-          phone: '11525826',
-          userName: '张孟超',
-          imagePath: 'http://pic.baike.soso.com/p/20131221/20131221152446-229545202.jpg',
-          enableComment: '2',
-          enableLogin: '1',
-          duration: '75h45m47s',
-          registerTime: '2019-12-12'
-        },
-        {
-          id: '15',
-          phone: '11525826',
-          userName: '王小虎',
-          imagePath: 'http://pic.baike.soso.com/p/20131221/20131221152446-229545202.jpg',
-          enableComment: '2',
-          enableLogin: '1',
-          duration: '75h45m48s',
-          registerTime: '2019-12-11'
-        },
-        {
-          id: '16',
-          phone: '11525826',
-          userName: '王小虎',
-          imagePath: 'http://pic.baike.soso.com/p/20131221/20131221152446-229545202.jpg',
-          enableComment: '2',
-          enableLogin: '1',
-          duration: '75h45m48s',
-          registerTime: '2019-12-11'
-        },
-        {
-          id: '17',
-          phone: '11525826',
-          userName: '王小虎',
-          imagePath: 'http://pic.baike.soso.com/p/20131221/20131221152446-229545202.jpg',
-          enableComment: '2',
-          enableLogin: '1',
-          duration: '75h45m48s',
-          registerTime: '2019-12-11'
-        },
-        {
-          id: '18',
-          phone: '11525826',
-          userName: '王小虎',
-          imagePath: 'http://pic.baike.soso.com/p/20131221/20131221152446-229545202.jpg',
-          enableComment: '2',
-          enableLogin: '1',
-          duration: '75h45m48s',
-          registerTime: '2019-12-11'
-        }
-      ],
+      tableData: [],
       editDialogVisible: false, // 控制修改用户信息对话框是否显示
+      addDialogVisible: false, // 控制新增用户信息对话框是否显示
       totalNum: 20,
       currPage: 1,
       pageSize: 5,
@@ -331,6 +280,12 @@ export default {
       editForm: {
         userName: '',
         phone: ''
+        // mobile: ''
+      },
+      addForm: {
+        userName: '',
+        phone: '',
+        password: '',
         // mobile: ''
       },
       roles:[2,3
@@ -353,11 +308,14 @@ export default {
     }
   },
   mounted() {
-    for (var i = 0; i < this.tableData.length; i++) {
-      this.tableData[i].roles = this.tableData[i].roles.join(',')
-    }
+
+    console.log('message')
+    console.log(getAllUsers())
+    this.tableData=getAllUsers.data
   },
   methods: {
+
+
 
     resetPassword(userId){
       this.$prompt('请输入新密码', '重置密码', {
@@ -448,6 +406,10 @@ export default {
       // 表单内容重置为空
       this.$refs.editFormRef.resetFields() // 通过ref引用调用resetFields方法
     },
+    addDialogClosed() {
+      // 表单内容重置为空
+      this.$refs.addForm.resetFields() // 通过ref引用调用resetFields方法
+    },
     // 点击按钮 修改用户信息
     editUserInfo() {
       // console.log(valid)
@@ -469,6 +431,16 @@ export default {
       this.editDialogVisible = false
       // 重新发起请求用户列表
       // this.getUserList()
+    },
+    addUser(){
+
+      this.$message({
+        message: '添加用户成功',
+        type: 'success',
+        offset: 150
+      })
+
+      this.addDialogVisible = false
     },
     handleFilter() {
 
