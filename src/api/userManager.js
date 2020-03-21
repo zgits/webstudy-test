@@ -41,16 +41,15 @@ export function getAllUsers() {
   return request({
     url:'/user/queryAllUsers',
     method:'get',
-    baseURL:'127.0.0.1:8081',
   })
 }
 
 
 export function login(data) {
   return request({
-    url: '/vue-element-admin/user/login',
+    url: '/user/loginForAdmin',
     method: 'post',
-    data
+    params: data
   })
 }
 

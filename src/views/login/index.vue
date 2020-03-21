@@ -75,6 +75,7 @@
 
 <script>
 import { validUsername } from '@/utils/validate'
+import { login } from "@/api/userManager"
 import SocialSign from './components/SocialSignin'
 
 export default {
@@ -98,7 +99,7 @@ export default {
     return {
       loginForm: {
         username: 'admin',
-        password: '111111'
+        password: 'dev123'
       },
       loginRules: {
         username: [{ required: true, trigger: 'blur', validator: validateUsername }],

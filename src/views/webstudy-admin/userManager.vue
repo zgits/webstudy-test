@@ -28,7 +28,7 @@
             type="selection"
           />
           <el-table-column
-            prop="userName"
+            prop="username"
             label="用户名"
             width="120"
           />
@@ -87,19 +87,19 @@
                 class="switchStyle"
                 active-text="允许"
                 inactive-text="禁止"
-                active-value="2"
-                inactive-value="4"
+                active-value=2
+                inactive-value=4
                 active-color="#13ce66"
                 inactive-color="#ff4949"
                 @change="changeStatus($event,scope.row.id)"
               />
-              评论
+              评论{{scope.row.enableComment}}
               <el-switch
                 v-model="scope.row.enableLogin"
                 class="switchStyle"
                 active-text="允许"
-                active-value="1"
-                inactive-value="3"
+                active-value=1
+                inactive-value=3
                 inactive-text="禁止"
                 active-color="#13ce66"
                 inactive-color="#ff4949"
@@ -308,14 +308,21 @@
     }
   },
   mounted() {
-
-    console.log('message')
-    console.log(getAllUsers())
-    this.tableData=getAllUsers.data
+    this.getUserData()
   },
   methods: {
 
+    getUserData(){
+      getAllUsers().then(res=>{
+        var data=res.data
 
+        this.currPage=data.pageNum
+        this.pageSize=data.pageSize
+        this.totalNum=data.total
+        this.tableData=data.list
+        console.log(this.tableData[0].enableComment)
+      })
+    },
 
     resetPassword(userId){
       this.$prompt('请输入新密码', '重置密码', {
