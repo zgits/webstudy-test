@@ -1,7 +1,5 @@
 import request from '@/utils/request'
 
-const urlSuffix='127.0.0.1:8081';
-
 
 /**
  * 更新用户基本信息

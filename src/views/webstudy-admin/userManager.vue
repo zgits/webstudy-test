@@ -262,7 +262,6 @@
   }
     from "@/api/userManager";
 
-  import qs from 'qs'
 
   export default {
     name: 'UserManager',
@@ -337,12 +336,12 @@
             userId: userId,
             newPassword: value
           }
-          resetPassword(data)
-
-          this.$message({
-            type: 'success',
-            message: '重置成功'
-          });
+          resetPassword(data).then(res=>{
+            this.$message({
+              type: 'success',
+              message: '重置成功'
+            });
+          })
         })
       },
 
@@ -378,6 +377,7 @@
             offset: 150
           })
         })
+        this.getUserData()
         this.editDialogVisible = false
       },
       changeStatus: function (status, userId) {
@@ -385,9 +385,7 @@
           userId: userId,
           status: status
         }
-        changeUserStatus(data).then(res => {
-
-        })
+        changeUserStatus(data)
 
       },
       handleSizeChange(val) {
@@ -454,11 +452,12 @@
       },
       // 点击按钮 修改用户信息
       editUserInfo() {
-        updateUserInfo(this.editForm)
-        this.$message({
-          message: '修改用户信息成功',
-          type: 'success',
-          offset: 150
+        updateUserInfo(this.editForm).then(res=>{
+          this.$message({
+            message: '修改用户信息成功',
+            type: 'success',
+            offset: 150
+          })
         })
         // 关闭对话框
         this.editDialogVisible = false

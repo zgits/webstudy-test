@@ -43,6 +43,12 @@
         align="center"
       />
       <el-table-column
+        prop="roleDesc"
+        label="角色描述"
+        width="150px"
+        align="center"
+      />
+      <el-table-column
         prop="createTime"
         label="创建时间"
         width="220px"
@@ -66,6 +72,7 @@
             :underline="false"
             icon="el-icon-edit"
             size="medium"
+            :disabled="scope.row.id===1||scope.row.id===2"
             @click="showEditDialog(scope.row)"
           >修改
           </el-link>
@@ -75,6 +82,7 @@
             :underline="false"
             icon="el-icon-delete"
             size="medium"
+            :disabled="scope.row.id===1||scope.row.id===2"
             @click="open(scope.row.id)"
           >删除
           </el-link>
@@ -95,12 +103,15 @@
 
     <el-dialog title="修改角色" :visible.sync="editDialogVisible" width="30%" @close="editDialogClosed">
 
-      <el-tabs type="border-card" stretch="true">
+      <el-tabs type="border-card" :stretch="true">
         <el-tab-pane label="修改角色信息">
-          <el-form ref="editFormRef" :model="editForm" label-width="70px">
+          <el-form ref="roleForm" :model="roleForm" label-width="70px">
 
             <el-form-item label="角色名">
-              <el-input v-model="editForm.roleName"/>
+              <el-input v-model="roleForm.roleName"/>
+            </el-form-item>
+            <el-form-item label="角色描述">
+              <el-input v-model="roleForm.roleDesc"/>
             </el-form-item>
 
             <el-form-item>
@@ -142,11 +153,13 @@
         <el-form-item label="角色名称">
           <el-input v-model="roleForm.roleName"/>
         </el-form-item>
+        <el-form-item label="角色描述">
+          <el-input v-model="roleForm.roleDesc"/>
+        </el-form-item>
         <el-form-item label="权限">
 
           <el-tree
-
-            ref="tree"
+            ref="addTree"
             :data="data"
             show-checkbox
             node-key="id"
@@ -174,9 +187,13 @@
   {
     queryAllRoles,
     queryAuth,
-    addRole
+    addRole,
+    updateRoleAuth,
+    updateRole,
+    deleteRoles,
+    getRoleAuth
   }
-  from "@/api/roleManager";
+    from "@/api/roleManager";
 
   export default {
 
@@ -187,210 +204,24 @@
     data() {
       return {
         tableData: [],
-        data: [
-          {
-            'id': 1,
-            'auth': 'userManager',
-            'parentId': 0,
-            'authDesc': '用户管理',
-            'hasChild': true,
-            'children': [
-              {
-                'id': 2,
-                'auth': 'userManager:delete',
-                'parentId': 1,
-                'authDesc': '删除用户',
-                'hasChild': false,
-                'children': []
-              },
-              {
-                'id': 7,
-                'auth': 'userManager:update',
-                'parentId': 1,
-                'authDesc': '更新用户',
-                'hasChild': false,
-                'children': []
-              },
-              {
-                'id': 8,
-                'auth': 'userManager:query',
-                'parentId': 1,
-                'authDesc': '查看用户信息',
-                'hasChild': false,
-                'children': []
-              },
-              {
-                'id': 9,
-                'auth': 'userManager:changeRole',
-                'parentId': 1,
-                'authDesc': '更改用户角色',
-                'hasChild': false,
-                'children': []
-              }
-            ]
-          },
-          {
-            'id': 3,
-            'auth': 'courseManager',
-            'parentId': 0,
-            'authDesc': '课程管理',
-            'hasChild': true,
-            'children': [
-              {
-                'id': 4,
-                'auth': 'courseManager:delete',
-                'parentId': 3,
-                'authDesc': '课程删除',
-                'hasChild': false,
-                'children': []
-              },
-              {
-                'id': 20,
-                'auth': 'courseManager:add',
-                'parentId': 3,
-                'authDesc': '增加课程',
-                'hasChild': false,
-                'children': []
-              },
-              {
-                'id': 21,
-                'auth': 'courseManager:update',
-                'parentId': 3,
-                'authDesc': '更新课程',
-                'hasChild': false,
-                'children': []
-              },
-              {
-                'id': 22,
-                'auth': 'courseManager:query',
-                'parentId': 3,
-                'authDesc': '查询课程',
-                'hasChild': false,
-                'children': []
-              }
-            ]
-          },
-          {
-            'id': 5,
-            'auth': 'apply',
-            'parentId': 0,
-            'authDesc': '审核',
-            'hasChild': true,
-            'children': [
-              {
-                'id': 6,
-                'auth': 'apply:query',
-                'parentId': 5,
-                'authDesc': '查看审核信息',
-                'hasChild': false,
-                'children': []
-              },
-              {
-                'id': 10,
-                'auth': 'apply:update',
-                'parentId': 5,
-                'authDesc': '更改审核',
-                'hasChild': false,
-                'children': []
-              },
-              {
-                'id': 11,
-                'auth': 'apply:delete',
-                'parentId': 5,
-                'authDesc': '删除审核记录',
-                'hasChild': false,
-                'children': []
-              }
-            ]
-          },
-          {
-            'id': 12,
-            'auth': 'role',
-            'parentId': 0,
-            'authDesc': '角色',
-            'hasChild': true,
-            'children': [
-              {
-                'id': 13,
-                'auth': 'role:add',
-                'parentId': 12,
-                'authDesc': '添加角色',
-                'hasChild': false,
-                'children': []
-              },
-              {
-                'id': 14,
-                'auth': 'role:delete',
-                'parentId': 12,
-                'authDesc': '删除角色',
-                'hasChild': false,
-                'children': []
-              },
-              {
-                'id': 15,
-                'auth': 'role:update',
-                'parentId': 12,
-                'authDesc': '更新角色',
-                'hasChild': false,
-                'children': []
-              },
-              {
-                'id': 16,
-                'auth': 'role:query',
-                'parentId': 12,
-                'authDesc': '查询角色',
-                'hasChild': false,
-                'children': []
-              },
-              {
-                'id': 17,
-                'auth': 'role:changeAuth',
-                'parentId': 12,
-                'authDesc': '分配权限',
-                'hasChild': false,
-                'children': []
-              }
-            ]
-          },
-          {
-            'id': 18,
-            'auth': 'auth',
-            'parentId': 0,
-            'authDesc': '权限详情',
-            'hasChild': true,
-            'children': [
-              {
-                'id': 19,
-                'auth': 'auth:query',
-                'parentId': 18,
-                'authDesc': '查看权限',
-                'hasChild': false,
-                'children': []
-              }
-            ]
-          }
-        ],
-
+        data: [],
+        addData: [],
         defaultProps: {
           children: 'children',
           label: 'authDesc'
         },
-        expandKeys: [18],
-        checkKeys: ['2', '7'],
+        expandKeys: [],
+        checkKeys: [],
 
         editDialogVisible: false, // 控制修改角色信息对话框是否显示
         addDialogVisible: false, // 控制增加角色信息对话框是否显示
         totalNum: 0,
         currPage: 1,
         pageSize: 10,
-        // 修改用户信息的表单数据
-        editForm: {
-          userName: '',
-          phone: ''
-          // mobile: ''
-        },
         roleForm: {
-          roleName: ''
+          roleName: '',
+          roleDesc: '',
+          id: 0,
         },
         rules: {
           roleName: [
@@ -418,14 +249,25 @@
           this.tableData = data.list
         })
       },
+      getAllAuth() {
+        queryAuth().then(res => {
+          this.data = res.data
+        })
+      },
 
       deleteRoles() {
 
         this.$refs.multipleTable.selection.forEach(item => {
           this.ids.push(item.id)
         })
-        console.log(this.ids);
+        deleteRoles(this.ids.join(',')).then(res => {
+          this.$message({
+            type: 'success',
+            message: '删除成功!'
+          })
+        })
         this.ids = []
+        this.getAllRoles()
       },
 
       handleFilter() {
@@ -438,11 +280,11 @@
       },
 
       handleSizeChange(val) {
-        this.pageSize=val
+        this.pageSize = val
         this.getAllRoles()
       },
       handleCurrentChange(val) {
-        this.currPage=val
+        this.currPage = val
         this.getAllRoles()
       },
       open: function (userId) {
@@ -451,104 +293,92 @@
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          console.log(userId)
-          this.$message({
-            type: 'success',
-            message: '删除成功!'
+          this.ids.push(userId)
+          deleteRoles(this.ids.join(',')).then(res => {
+            this.$message({
+              type: 'success',
+              message: '删除成功!'
+            })
           })
-        }).catch(() => {
-
+          this.ids = []
+          this.getAllRoles()
         })
-      },
-      toggleSelection(rows) {
-        if (rows) {
-          rows.forEach(row => {
-            this.$refs.multipleTable.toggleRowSelection(row)
-          })
-        } else {
-          this.$refs.multipleTable.clearSelection()
-        }
       },
       handleSelectionChange(val) {
         this.multipleTable = val
         console.log(multipleTable)
       },
-      showEditDialog(userinfo) {
-        // const { data: res } = await this.$http.get('users/' + id)
-        this.editDialogVisible = true
-        console.log(userinfo)
-        this.editForm = userinfo
+      showEditDialog(roleInfo) {
+        this.roleForm.id = roleInfo.id
+        this.roleForm.roleName = roleInfo.roleName
+        this.roleForm.roleDesc = roleInfo.roleDesc
+
+        this.getAllAuth()
+        getRoleAuth(roleInfo.id).then(res => {
+          this.checkKeys = res.data.authIds
+          this.expandKeys = res.data.authIds
+          this.editDialogVisible = true
+        })
+
+
       },
       showAddDialog() {
+        this.reset()
         this.addDialogVisible = true
-        queryAuth().then(res=>{
-          this.data=res.data
-        })
       },
       editDialogClosed() {
-        // 表单内容重置为空
-        this.$refs.editFormRef.resetFields() // 通过ref引用调用resetFields方法
+        this.reset()
+        this.editDialogVisible = false
       },
       editRoleInfo() {
-        // todo 请求
-        this.$message({
-          message: '修改角色信息成功',
-          type: 'success',
-          offset: 150
+        updateRole(this.roleForm).then(res => {
+          this.$message({
+            message: '修改角色信息成功',
+            type: 'success',
+            offset: 150
+          })
         })
         // 关闭对话框
+        this.getAllRoles()
         this.editDialogVisible = false
+
       },
       editRoleAuth() {
-        // todo 请求
-        console.log(this.$refs.tree.getCheckedKeys())
 
-        this.$message({
-          message: '修改角色权限成功',
-          type: 'success',
-          offset: 150
+        let data = {
+          roleId: this.roleForm.id,
+          authIds: this.$refs.tree.getCheckedKeys().join(',')
+        }
+
+        updateRoleAuth(data).then(res => {
+          this.$message({
+            message: '修改角色权限成功',
+            type: 'success',
+            offset: 150
+          })
         })
         // 关闭对话框
         this.editDialogVisible = false
-      },
-      // 点击按钮 修改用户信息
-      editUserInfo() {
-        // console.log(valid)
-        // if (!valid) return
-        // 可以发起修改用户信息的网络请求
-        // const { data: res } = await this.$http.put(
-        //     'users/' + this.editForm.id,
-        //     { email: this.editForm.email, mobile: this.editForm.mobile }
-        // )
-        // if (res.meta.status !== 200) {
-        //     return this.$message.error('修改用户信息失败！')
-        // }
-        this.$message({
-          message: '修改用户信息成功',
-          type: 'success',
-          offset: 150
-        })
-        // 关闭对话框
-        this.editDialogVisible = false
-        // 重新发起请求用户列表
-        // this.getUserList()
       },
       addRoleInfo(formName) {
         this.$refs[formName].validate((valid) => {
           if (valid) {
-            this.$refs[formName].resetFields()
 
-            let roleInfo={
-              roleName:this.roleForm.roleName,
-              authIds:this.$refs.tree.getCheckedKeys().join(',')
+            let roleInfo = {
+              roleName: this.roleForm.roleName,
+              roleDesc: this.roleForm.roleDesc,
+              authIds: this.$refs.addTree.getCheckedKeys().join(',')
             }
-            addRole(roleInfo)
-            this.$message({
-              message: '添加角色信息成功',
-              type: 'success',
-              offset: 150
+            addRole(roleInfo).then(res => {
+              this.$message({
+                message: '添加角色信息成功',
+                type: 'success',
+                offset: 150
+              })
+              this.getAllRoles()
             })
-            this.getAllRoles()
+            // this.$refs.addTree.re
+            this.$refs.addTree.setCheckedKeys([])
             // 关闭对话框
             this.addDialogVisible = false
           } else {
@@ -557,23 +387,22 @@
         })
       },
       addDialogClosed() {
-        // 表单内容重置为空
-        this.$refs.roleForm.resetFields() // 通过ref引用调用resetFields方法
+        this.addDialogVisible = false
       },
-      submitForm(formName) {
-        this.$refs[formName].validate((valid) => {
-          if (valid) {
-            alert('submit!')
-          } else {
-            console.log('error submit!!')
-            return false
-          }
-        })
+      reset() {
+        this.roleForm.roleName = ''
+        this.roleForm.roleDesc = ''
+        this.roleForm.id = 0
+        this.expandKeys = []
+        this.checkKeys = []
+        this.editDialogVisible = false
+        this.addDialogVisible = false
       }
 
     },
     mounted() {
       this.getAllRoles()
+      this.getAllAuth()
     }
   }
 </script>
