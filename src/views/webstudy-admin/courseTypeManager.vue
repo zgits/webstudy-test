@@ -27,60 +27,10 @@
         >
           <el-table-column
             type="selection"
-            width="80px"
+            width="40px"
           />
 
-          <el-table-column type="expand">
-              <template slot-scope="scope">
-                <el-table
-                  border
-                  ref="multipleTable"
-                  :data="scope.row.children">
-                  <el-table-column
-                    type="selection"
-                    width="80px"
-                  />
-                  <el-table-column label="序号" type="index" width="150px" align="center" />
-
-                  <el-table-column
-                  label="名称" prop="typeName">
-
-                  </el-table-column>
-                  <el-table-column
-                  label="类别">
-                    类型
-                  </el-table-column>
-                  <el-table-column
-                    label="操作"
-                    align="center"
-                  >
-                    <template slot-scope="scope">
-
-                      <el-link
-                        type="primary"
-                        :underline="false"
-                        icon="el-icon-edit"
-                        size="medium"
-                        @click="showEditDialog(scope.row)"
-                      >修改
-                      </el-link>
-
-                      <el-link
-                        type="danger"
-                        :underline="false"
-                        icon="el-icon-delete"
-                        size="medium"
-                        @click="open(scope.row.id)"
-                      >删除
-                      </el-link>
-                    </template>
-                  </el-table-column>
-
-                </el-table>
-              </template>
-          </el-table-column>
-
-          <el-table-column label="序号" type="index" width="150px" align="center" />
+          <el-table-column label="序号" type="index" width="80px" align="center" />
           <el-table-column
             prop="typeName"
             label="名称"
@@ -88,13 +38,32 @@
             align="center"
           />
           <el-table-column
+            prop="typeVo"
             label="类型"
-            width="220px"
-            sortable
+            width="150px"
             align="center"
           >
-            方向
           </el-table-column>
+          <el-table-column
+            prop="parentName"
+            label="所属方向"
+            width="150px"
+            align="center"
+          />
+
+          <el-table-column
+              prop="creator"
+              label="创建者"
+              width="150px"
+              align="center"
+          />
+          <el-table-column
+              prop="createTime"
+              label="创建时间"
+              width="220px"
+              align="center"
+              sortable
+          />
           <el-table-column
             label="操作"
             align="center"
@@ -136,24 +105,24 @@
       <el-dialog title="添加类别" :visible.sync="addDialogVisible" @close="addDialogClosed" width="30%">
 
         <el-form ref="addTypeForm" :model="addTypeForm" label-width="80px">
-          <el-form-item label="名称" prop="typeName">
+          <el-form-item label="名称">
             <el-input v-model="addTypeForm.typeName"></el-input>
           </el-form-item>
-          <el-form-item prop="isType" label="类型">
-            <el-select  v-model="addTypeForm.isType" placeholder="请选择类型" @change="showType">
-              <el-option label="方向" value="0"></el-option>
-              <el-option label="类别" value="1"></el-option>
+          <el-form-item  label="类型">
+            <el-select  v-model="addTypeForm.type" placeholder="请选择类型" @change="showType">
+              <el-option label="方向" :value=0></el-option>
+              <el-option label="类别" :value=1></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item prop="parentId" label="所属方向" v-if="addTypeForm.isType==='1'">
-            <el-select v-model="addTypeForm.parentId" placeholder="" @change="">
+          <el-form-item label="所属方向" v-if="addTypeForm.type===1">
+            <el-select v-model="addTypeForm.parentId">
               <el-option v-for="item in parent" :key="item.id" :label="item.typeName" :value="item.id"></el-option>
 
             </el-select>
           </el-form-item>
 
           <el-form-item>
-            <el-button type="primary" @click="addTypeInfo('addTypeForm')">创建</el-button>
+            <el-button type="primary" @click="addTypeInfo()">创建</el-button>
             <el-button @click="addDialogVisible = false">取消</el-button>
           </el-form-item>
         </el-form>
@@ -162,24 +131,23 @@
       <el-dialog title="修改类别" :visible.sync="editDialogVisible" @close="editDialogClosed" width="30%">
 
         <el-form ref="editTypeForm" :model="editTypeForm" label-width="80px">
-          <el-form-item label="名称" prop="typeName">
+          <el-form-item label="名称" >
             <el-input v-model="editTypeForm.typeName"></el-input>
           </el-form-item>
-          <el-form-item prop="isType" label="类型">
-            <el-select  v-model="editTypeForm.isType" placeholder="请选择类型" @change="editshowType">
-              <el-option label="方向" value="0"></el-option>
-              <el-option label="类别" value="1"></el-option>
+          <el-form-item label="类型">
+            <el-select  v-model="editTypeForm.type" placeholder="请选择类型" @change="editshowType">
+              <el-option label="方向" :value="0"></el-option>
+              <el-option label="类别" :value="1"></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item prop="parentId" label="所属方向" v-if="editTypeForm.isType==='1'">
-            <el-select v-model="editTypeForm.parentId" placeholder="" @change="">
-              <el-option v-for="item in parent" :key="item.id" :label="item.typeName" :value="item.id"></el-option>
-
+          <el-form-item  label="所属方向" v-if="editTypeForm.type===1">
+            <el-select v-model="editTypeForm.parentId">
+              <el-option v-for="item in parent" :key="item.id" :label="item.typeName" :value="item.id"/>
             </el-select>
           </el-form-item>
 
           <el-form-item>
-            <el-button type="primary" @click="editTypeInfo('editTypeForm')">修改</el-button>
+            <el-button type="primary" @click="editTypeInfo()">修改</el-button>
             <el-button @click="editDialogVisible = false">取消</el-button>
           </el-form-item>
         </el-form>
@@ -191,122 +159,72 @@
 </template>
 
 <script>
+
+  import {
+    addType,
+    deleteType,
+    updateType,
+    queryAllByPage,
+    queryChild,
+    queryDirect
+  }
+  from '@/api/courseType';
+
 export default {
   name: 'CourseTypeManager',
   data() {
     return {
-      tableData: [
-        {
-          id: '12',
-          typeName: '前端',
-          isType:'0',
-          children:[
-            {
-              id:'123',
-              typeName:'HTML',
-              isType:'1',
-              parentId:12,
-            },
-            {
-              id:'4545',
-              typeName:'CSS',
-              isType:'1',
-              parentId:12,
-            }
-          ]
-        },
-        {
-          id: '122',
-          roleName: '张家烨',
-          createTime: '2019-12-11',
-          creater: 'dev'
-        },
-        {
-          id: '13',
-          roleName: '张家烨',
-          createTime: '2019-12-11',
-          creater: 'dev'
-        },
-        {
-          id: '123',
-          roleName: '张家烨',
-          createTime: '2019-12-11',
-          creater: 'dev'
-        },
-        {
-          id: '15',
-          roleName: '张家烨',
-          createTime: '2019-12-11',
-          creater: 'dev'
-        },
-        {
-          id: '16',
-          roleName: '张家烨',
-          createTime: '2019-12-11',
-          creater: 'dev'
-        },
-        {
-          id: '17',
-          roleName: '张家烨',
-          createTime: '2019-12-11',
-          creater: 'dev'
-        },
-        {
-          id: '18',
-          roleName: '张家烨',
-          createTime: '2019-12-11',
-          creater: 'dev'
-        }
-      ],
-      expandKeys: [18],
-      checkKeys: ['2', '7'],
-
+      tableData: [],
       editDialogVisible: false, // 控制修改角色信息对话框是否显示
       addDialogVisible: false, // 控制增加角色信息对话框是否显示
-      totalNum: 20,
+      totalNum: 0,
       currPage: 1,
-      pageSize: 5,
-
-
-      typeVisible:false,
+      pageSize: 10,
       searchValue:'',
       ids:[],
       addTypeForm:{
         typeName:'',
-        parentId:'',
-        isType:'0',
+        parentId:0,
+        type:0,
       },
       editTypeForm:{
+        id:0,
         typeName:'',
         parentId:'',
-        isType:'0',
+        type:0,
       },
-      parent:[
-
-      ],//方向
-      parentId:'',
-      // isType:'0',
-
+      parent:[],//方向
     }
   },
   methods: {
 
+    getAllByPage(){
+      let page = {
+        currPage: this.currPage,
+        pageSize: this.pageSize
+      }
+      queryAllByPage(page).then(res => {
+        var data = res.data
+        this.currPage = data.pageNum
+        this.pageSize = data.pageSize
+        this.totalNum = data.total
+        this.tableData = data.list
+      })
+    },
+
     showType(value){
-      console.log(value)
       if (value==1){
         this.addTypeForm.parentId=this.parent[0].id;
       }
     },
 
     editshowType(value){
-      console.log(value)
       if (value==1){
         this.editTypeForm.parentId=this.parent[0].id;
       }
     },
 
     addDialogClosed() {
-      // 表单内容重置为空
       this.$refs.addTypeForm.resetFields() // 通过ref引用调用resetFields方法
     },
     editDialogClosed() {
@@ -314,17 +232,21 @@ export default {
       this.$refs.editTypeForm.resetFields() // 通过ref引用调用resetFields方法
     },
 
-    addTypeInfo(formName) {
-      this.$refs[formName].validate((valid) => {
+    addTypeInfo() {
+      this.$refs.addTypeForm.validate((valid) => {
         if (valid) {
-          this.$refs[formName].resetFields()
-          // todo 请求
-          this.$message({
-            message: '添加类型信息成功',
-            type: 'success',
-            offset: 150
+
+          if (this.addTypeForm.type==0){
+            this.addTypeForm.parentId=0
+          }
+          addType(this.addTypeForm).then(res=>{
+            this.$message({
+              message: '添加类型信息成功',
+              type: 'success',
+              offset: 150
+            })
+            this.getAllByPage()
           })
-          // 关闭对话框
           this.addDialogVisible = false
         } else {
           return false
@@ -332,25 +254,26 @@ export default {
       })
     },
 
-    editTypeInfo(formName) {
-      this.$refs[formName].validate((valid) => {
+    editTypeInfo() {
+      this.$refs.editTypeForm.validate((valid) => {
         if (valid) {
-          this.$refs[formName].resetFields()
-          // todo 请求
-          this.$message({
-            message: '添加类型信息成功',
-            type: 'success',
-            offset: 150
+          if (this.editTypeForm.type==0){
+            this.editTypeForm.parentId=0
+          }
+          updateType(this.editTypeForm).then(res=>{
+            this.$message({
+              message: '修改信息成功',
+              type: 'success',
+              offset: 150
+            })
+            this.getAllByPage()
           })
-          // 关闭对话框
           this.editDialogVisible = false
         } else {
           return false
         }
       })
     },
-
-
 
     handleFilter() {
 
@@ -365,14 +288,23 @@ export default {
       this.$refs.multipleTable.selection.forEach(item =>{
         this.ids.push(item.id)
       })
-      console.log(this.ids);
+
+      deleteType(this.ids.join(',')).then(res=>{
+        this.$message({
+          type: 'success',
+          message: '删除成功!'
+        })
+      })
+      this.getAllByPage()
       this.ids=[]
     },
     handleSizeChange(val) {
-      console.log(`每页 ${val} 条`)
+      this.pageSize=val
+      this.getAllByPage()
     },
     handleCurrentChange(val) {
-      console.log(`当前页: ${val}`)
+      this.currPage=val
+      this.getAllByPage()
     },
     open: function(userId) {
       this.$confirm('是否删除该类别?', '警告', {
@@ -380,132 +312,50 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        console.log(userId)
-        this.$message({
-          type: 'success',
-          message: '删除成功!'
+        this.ids.push(userId)
+        deleteType(this.ids.join(',')).then(res=>{
+          this.$message({
+            type: 'success',
+            message: '删除成功!'
+          })
+          this.getAllByPage()
+          this.ids=[]
         })
-      }).catch(() => {
-
       })
     },
-    toggleSelection(rows) {
-      if (rows) {
-        rows.forEach(row => {
-          this.$refs.multipleTable.toggleRowSelection(row)
-        })
-      } else {
-        this.$refs.multipleTable.clearSelection()
-      }
-    },
+
     handleSelectionChange(val) {
       this.multipleTable = val
       console.log(multipleTable)
     },
     showEditDialog(courseType) {
-      // const { data: res } = await this.$http.get('users/' + id)
       this.editDialogVisible = true
+      this.getParentList()
+      this.editTypeForm.id = courseType.id
+      this.editTypeForm.typeName=courseType.typeName
+      this.editTypeForm.type=courseType.type
+      this.editTypeForm.parentId=courseType.parentId
 
-      this.parent=this.getParentList()
-      console.log(courseType)
-      this.editTypeForm = courseType
     },
     showAddDialog() {
       this.addDialogVisible = true
-      this.parent=this.getParentList()
-
+      this.reset()
+      this.getParentList()
     },
 
     getParentList(){
-      var parentList=[
-        {
-          id:12,
-          typeName:'前端'
-        },
-        {
-          id:21,
-          typeName:'后端'
-        },
-        {
-          id:31,
-          typeName:'云计算'
-        },
-      ]
-      return parentList
-    },
-    editRoleInfo() {
-      // todo 请求
-      this.$message({
-        message: '修改角色信息成功',
-        type: 'success',
-        offset: 150
-      })
-      // 关闭对话框
-      this.editDialogVisible = false
-    },
-    editRoleAuth() {
-      // todo 请求
-      console.log(this.$refs.tree.getCheckedKeys())
-
-      this.$message({
-        message: '修改角色权限成功',
-        type: 'success',
-        offset: 150
-      })
-      // 关闭对话框
-      this.editDialogVisible = false
-    },
-    // 点击按钮 修改用户信息
-    editUserInfo() {
-      // console.log(valid)
-      // if (!valid) return
-      // 可以发起修改用户信息的网络请求
-      // const { data: res } = await this.$http.put(
-      //     'users/' + this.editForm.id,
-      //     { email: this.editForm.email, mobile: this.editForm.mobile }
-      // )
-      // if (res.meta.status !== 200) {
-      //     return this.$message.error('修改用户信息失败！')
-      // }
-      this.$message({
-        message: '修改用户信息成功',
-        type: 'success',
-        offset: 150
-      })
-      // 关闭对话框
-      this.editDialogVisible = false
-      // 重新发起请求用户列表
-      // this.getUserList()
-    },
-    addRoleInfo(formName) {
-      this.$refs[formName].validate((valid) => {
-        if (valid) {
-          this.$refs[formName].resetFields()
-          this.$refs.tree.getCheckedKeys() // 获取的选择权限信息
-          // todo 请求
-          this.$message({
-            message: '添加角色信息成功',
-            type: 'success',
-            offset: 150
-          })
-          // 关闭对话框
-          this.addDialogVisible = false
-        } else {
-          return false
-        }
+      queryDirect().then(res=>{
+        this.parent=res.data
       })
     },
-    submitForm(formName) {
-      this.$refs[formName].validate((valid) => {
-        if (valid) {
-          alert('submit!')
-        } else {
-          console.log('error submit!!')
-          return false
-        }
-      })
+    reset(){
+      this.addTypeForm.typeName=''
+      this.addTypeForm.type=0
+      this.addTypeForm.parentId=0
     }
-
+  },
+  mounted() {
+    this.getAllByPage()
   }
 }
 </script>
