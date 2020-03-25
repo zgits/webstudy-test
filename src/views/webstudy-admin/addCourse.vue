@@ -6,13 +6,13 @@
     </el-steps>
 
 
-    <el-form v-if="active===0" ref="editFormRef" :model="editForm" label-width="70px" align="left">
+    <el-form v-if="active===0" ref="addForm" :model="addForm" label-width="70px" align="left">
 
       <el-form-item label="课程名称">
-        <el-input v-model="editForm.className" style="width: 300px"/>
+        <el-input v-model="addForm.className" style="width: 300px"/>
       </el-form-item>
       <el-form-item label="难度">
-        <el-radio-group v-model="editForm.level">
+        <el-radio-group v-model="addForm.level">
           <el-radio :label="1">入门级</el-radio>
           <el-radio :label="2">初级</el-radio>
           <el-radio :label="3">中级</el-radio>
@@ -21,52 +21,39 @@
       </el-form-item>
 
       <el-form-item label="简介">
-        <el-input v-model="editForm.introdu" type="textarea"/>
+        <el-input v-model="addForm.introduction" type="textarea"/>
+      </el-form-item>
+      <el-form-item label="类别">
+        <el-select
+          v-model="typeIds"
+          multiple
+          placeholder="请选择"
+          style="width: 270px"
+        >
+          <el-option
+            v-for="item in types"
+            :key="item.id"
+            :label="item.typeName"
+            :value="item.id">
+          </el-option>
+        </el-select>
       </el-form-item>
       <el-form-item label="封面">
         <el-upload
-          limit=1
-          action="#"
+          :limit="1"
+          action="/course/add"
           list-type="picture-card"
           :auto-upload="false"
+          ref="upload"
+          name="coverImage"
+          :on-success="fileSuccess"
+          :data='convert()'
+          :headers="setHeader()"
         >
           <i slot="default" class="el-icon-plus"/>
-          <div slot="file" slot-scope="{file}">
-            <img
-              class="el-upload-list__item-thumbnail"
-              :src="file.url"
-              alt=""
-            >
-            <span class="el-upload-list__item-actions">
-                <span
-                  class="el-upload-list__item-preview"
-                  @click="handlePictureCardPreview(file)"
-                >
-                  <i class="el-icon-zoom-in"/>
-                </span>
-                <span
-                  v-if="!disabled"
-                  class="el-upload-list__item-delete"
-                  @click="handleDownload(file)"
-                >
-                  <i class="el-icon-download"/>
-                </span>
-                <span
-                  v-if="!disabled"
-                  class="el-upload-list__item-delete"
-                  @click="handleRemove(file)"
-                >
-                  <i class="el-icon-delete"/>
-
-                </span>
-              </span>
-          </div>
 
           <div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>
         </el-upload>
-        <el-dialog :visible.sync="dialogVisible">
-          <img width="100%" :src="dialogImageUrl" alt="">
-        </el-dialog>
       </el-form-item>
     </el-form>
 
@@ -124,7 +111,7 @@
 
             <el-form label-width="50px" v-if="this.data.length>0">
               <el-form-item label="标题">
-                <el-input @input="changeValue" v-model="input" placeholder='请输入内容' ></el-input>
+                <el-input @input="changeValue" v-model="input" placeholder='请输入内容'></el-input>
 
               </el-form-item>
 
@@ -142,33 +129,37 @@
             </el-form>
 
 
-
-
-
           </div>
         </el-card>
       </el-col>
-<!--      <el-col :span="8">-->
-<!--        <el-card class="box-card">-->
-<!--          <div slot="header" class="clearfix">-->
-<!--            <span>Share</span>-->
-<!--          </div>-->
-<!--          <div class="component-item" style="height:420px;">-->
-<!--          </div>-->
-<!--        </el-card>-->
-<!--      </el-col>-->
+      <!--      <el-col :span="8">-->
+      <!--        <el-card class="box-card">-->
+      <!--          <div slot="header" class="clearfix">-->
+      <!--            <span>Share</span>-->
+      <!--          </div>-->
+      <!--          <div class="component-item" style="height:420px;">-->
+      <!--          </div>-->
+      <!--        </el-card>-->
+      <!--      </el-col>-->
     </el-row>
 
 
-    <el-button style="margin-top: 12px;" @click="next">下一步</el-button>
+    <el-button style="margin-top: 12px;" @click="next" v-if="this.step===1">下一步</el-button>
+    <el-button style="margin-top: 12px;" @click="" v-if="this.step===2">完成</el-button>
 
 
   </div>
 </template>
 
 <script>
+
+  import {addCourse, queryAll} from "@/api/addCourse";
+
+  import { getToken } from '@/utils/auth'
+
+
   let id = 0;
-  let count=1000;
+  let count = 1000;
   export default {
     name: "addCourse",
     data() {
@@ -177,33 +168,66 @@
         editForm: {
           level: '',
           className: ''
-
-          // mobile: ''
         },
-        data:[],
-        input:'',
+        addForm: {
+          className: '',
+          introduction: '',
+          typeId: '',
+          level: '',
+        },
+        data: [],
+        input: '',
         inputData: '',
-        suffix:'',
+        suffix: '',
+        step: 1,
+        courseId: '',
+        types: [],//所有类别
+        typeIds:[],//选中类别
       };
+    },
+    mounted() {
+      queryAll().then(res => {
+        this.types = res.data
+      })
     },
 
     methods: {
+
+      setHeader(){
+        return {
+          'token':getToken()
+        }
+      },
+
+      convert(){
+        this.addForm.typeId=this.typeIds.join(',')
+        return this.addForm
+      },
+
+
       next() {
         if (this.active++ > 1) this.active = 0;
+        this.step = 2;
+        this.$refs.upload.submit()
       },
+
+      fileSuccess(res, file){
+        this.courseId=res.data
+      },
+
       add() {
 
         id++;
         this.data.push({
-          id:id,
-          label:'第'+(id)+'章:标题',
-          children:[],
+          id: id,
+          label: '第' + (id) + '章:标题',
+          children: [],
         });
       },
 
       append(data) {
         count++;
-        const newChild = { id: count, label: data.id+'-'+(data.children.length+1)+':子标题' };
+        const newChild = {id: count, label: data.id + '-' + (data.children.length + 1) + ':子标题'};
         data.children.push(newChild);
       },
 
@@ -214,9 +238,9 @@
         const index = children.findIndex(d => d.id === data.id);
         children.splice(index, 1);
 
-        this.data.forEach(item=>{
+        this.data.forEach(item => {
 
-          if(item.id>data.id) {
+          if (item.id > data.id) {
 
 
             var tempId = --item.id;
@@ -234,38 +258,27 @@
 
       },
 
-      clickTree(data){
-        this.suffix=data.label.split(":")[0];
-        this.input=data.label.split(":")[1];
-        this.inputData=data.id;
+      clickTree(data) {
+        this.suffix = data.label.split(":")[0];
+        this.input = data.label.split(":")[1];
+        this.inputData = data.id;
         console.log(data);
       },
 
-      changeValue(){
+      changeValue() {
 
-        if (this.inputData>1000){
-            this.data.forEach(item=>{
-              item.children.forEach(child=>{
-                if(child.id==this.inputData){
-                  child.label=this.suffix+':'+this.input;
-                }
-              });
+        if (this.inputData > 1000) {
+          this.data.forEach(item => {
+            item.children.forEach(child => {
+              if (child.id == this.inputData) {
+                child.label = this.suffix + ':' + this.input;
+              }
             });
-        } else{
-          this.data[this.inputData-1].label=this.suffix+':'+this.input;
+          });
+        } else {
+          this.data[this.inputData - 1].label = this.suffix + ':' + this.input;
         }
       }
-
-      // renderContent(h, { node, data, store }) {
-      //   return (
-      //     <span class="custom-tree-node">
-      //     <span>{node.label}</span>
-      //     <span>
-      //     <el-button size="mini" type="text" on-click={ () => this.append(data) }>Append</el-button>
-      //   <el-button size="mini" type="text" on-click={ () => this.remove(node, data) }>Delete</el-button>
-      //   </span>
-      //   </span>);
-      // }
     }
   }
 </script>

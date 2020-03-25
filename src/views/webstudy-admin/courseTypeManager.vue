@@ -8,6 +8,10 @@
 
       <el-input  v-model="searchValue" placeholder="名称" style="width: 200px;" class="filter-item" @keyup.enter.native="handleFilter" />
 
+      <el-select class="filter-item" v-model="typeValue" placeholder="全部" clearable @change="getAllByPage">
+        <el-option label="方向" :value=0></el-option>
+        <el-option label="类别" :value=1></el-option>
+      </el-select>
 
       <el-button class="filter-item" icon="el-icon-plus" type="primary" @click="showAddDialog">新增</el-button>
 
@@ -194,6 +198,7 @@ export default {
         type:0,
       },
       parent:[],//方向
+      typeValue:'',
     }
   },
   methods: {
@@ -201,7 +206,8 @@ export default {
     getAllByPage(){
       let page = {
         currPage: this.currPage,
-        pageSize: this.pageSize
+        pageSize: this.pageSize,
+        type:this.typeValue
       }
       queryAllByPage(page).then(res => {
         var data = res.data
