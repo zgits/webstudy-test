@@ -23,6 +23,12 @@
       <el-form-item label="简介">
         <el-input v-model="addForm.introduction" type="textarea"/>
       </el-form-item>
+      <el-form-item label="基本知识">
+        <el-input v-model="addForm.baseKnowledge" type="textarea"/>
+      </el-form-item>
+      <el-form-item label="能学什么">
+        <el-input v-model="addForm.learn" type="textarea"/>
+      </el-form-item>
       <el-form-item label="类别">
         <el-select
           v-model="typeIds"
@@ -174,6 +180,8 @@
           introduction: '',
           typeId: '',
           level: '',
+          learn:'',
+          baseKnowledge:'',
         },
         data: [],
         input: '',
@@ -212,7 +220,15 @@
       },
 
       fileSuccess(res, file){
-        this.courseId=res.data
+
+        if(res.code==0){
+          this.courseId=res.data
+        }else{
+          this.$message({
+            type: 'error',
+            message: res.msg
+          })
+        }
       },
 
       add() {
