@@ -84,12 +84,13 @@
                   @node-click="clickTree">
                   <span class="custom-tree-node" slot-scope="{ node, data }">
         <span>{{ node.label }}</span>
-        <span v-if="data.children">
+        <span>
           <el-button
+            v-if="data.children"
             type="text"
             size="mini"
             icon="el-icon-plus"
-            @click="() => append(data)">
+            @click="() => append(node,data)">
             新增
           </el-button>
           <el-button
@@ -115,17 +116,26 @@
           <div class="component-item" style="height:420px;">
 
 
-            <el-form label-width="50px" v-if="this.data.length>0">
+            <el-form label-width="50px" v-if="(!this.showChild)&&(this.data.length>0)">
               <el-form-item label="标题">
-                <el-input @input="changeValue" v-model="input" placeholder='请输入内容'></el-input>
+                <el-input @change="updateChapter" v-model="input" placeholder='请输入内容'></el-input>
+
+              </el-form-item>
+
+            </el-form>
+            <el-form label-width="50px" v-if="showChild">
+              <el-form-item label="标题">
+                <el-input @change="changeValue" v-model="input" placeholder='请输入内容'></el-input>
 
               </el-form-item>
 
               <el-form-item label="视频资源">
                 <el-upload
                   drag
-                  action="https://jsonplaceholder.typicode.com/posts/"
-                  multiple>
+                  action="#"
+                  multiple
+                :headers="setHeader()"
+                >
                   <i class="el-icon-upload"></i>
                   <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
                   <div class="el-upload__tip" slot="tip">只能上传视频文件在这里</div>
@@ -159,7 +169,19 @@
 
 <script>
 
-  import {addCourse, queryAll} from "@/api/addCourse";
+  import
+  {
+    addCourse,
+    queryAll,
+    addCourseChapter,
+    deleteCourseChapter,
+    updateCourseChapter,
+    addCourseDetail,
+    deleteCourseDetail,
+    updateCourseDetail
+  }
+
+  from "@/api/addCourse";
 
   import { getToken } from '@/utils/auth'
 
@@ -184,13 +206,16 @@
           baseKnowledge:'',
         },
         data: [],
-        input: '',
+        input: '',//输入的值
         inputData: '',
         suffix: '',
         step: 1,
-        courseId: '',
+        courseId: '',//课程id
+        chapterId:'',//章节id
+        detailId:'',//小节id
         types: [],//所有类别
         typeIds:[],//选中类别
+        showChild:false,//显示小节修改
       };
     },
     mounted() {
@@ -234,17 +259,43 @@
       add() {
 
         id++;
-        this.data.push({
-          id: id,
-          label: '第' + (id) + '章:标题',
-          children: [],
-        });
+        let data={
+          courseId:this.courseId,
+          chapterName:'标题',
+          sequence:id
+        }
+        addCourseChapter(data).then(res=>{
+          console.log(res.data)
+          this.chapterId=res.data
+          this.data.push({
+            id: id,
+            label: '第' + (id) + '章:标题',
+            children: [],
+            chapterId:res.data
+          });
+        })
+
       },
 
-      append(data) {
+      append(node,data) {
         count++;
-        const newChild = {id: count, label: data.id + '-' + (data.children.length + 1) + ':子标题'};
-        data.children.push(newChild);
+
+        let param={
+          chapterId:data.chapterId,
+          name:'子标题',
+          sequence:count
+        }
+
+        addCourseDetail(param).then(res=>{
+
+          const newChild = {
+            id: count,
+            label: data.id + '-' + (data.children.length + 1) + ':子标题',
+            detailId:res.data,
+          };
+          data.children.push(newChild);
+        })
+
       },
 
       remove(node, data) {
@@ -254,31 +305,91 @@
         const index = children.findIndex(d => d.id === data.id);
         children.splice(index, 1);
 
-        this.data.forEach(item => {
 
-          if (item.id > data.id) {
+        if (data.id<1000){
+          deleteCourseChapter(data.chapterId).then(res=>{
+            this.data.forEach(item => {
+
+              if (item.id > data.id) {
 
 
-            var tempId = --item.id;
-            item.id = tempId;
-            item.label = '第' + (tempId) + '章:' + item.label.split(":")[1];
+                var tempId = --item.id;
+                item.id = tempId;
+                item.label = '第' + (tempId) + '章:' + item.label.split(":")[1];
 
-            item.children.forEach(child => {
-              child.label = tempId + "-" + child.label.split("-")[1];
+                item.children.forEach(child => {
+                  child.label = tempId + "-" + child.label.split("-")[1];
+                })
+
+              }
+
+
             })
+          })
+        } else{
+          deleteCourseDetail(data.detailId).then(res=>{
+            this.data.forEach(item => {
 
-          }
+              if (item.id > data.id) {
 
 
-        })
+                var tempId = --item.id;
+                item.id = tempId;
+                item.label = '第' + (tempId) + '章:' + item.label.split(":")[1];
+
+                item.children.forEach(child => {
+                  child.label = tempId + "-" + child.label.split("-")[1];
+                })
+
+              }
+
+
+            })
+          })
+        }
+
+
 
       },
 
-      clickTree(data) {
+      clickTree(data,node) {
         this.suffix = data.label.split(":")[0];
         this.input = data.label.split(":")[1];
         this.inputData = data.id;
+        console.log("父节点"+node.parent)
+
+        if (data.id<1000){
+          this.chapterId=data.chapterId
+          this.showChild=false
+        } else{
+          this.detailId=data.detailId
+          this.showChild=true
+        }
         console.log(data);
+      },
+
+
+      updateChapter(){
+        if (this.inputData > 1000) {
+          this.data.forEach(item => {
+            item.children.forEach(child => {
+              if (child.id == this.inputData) {
+                child.label = this.suffix + ':' + this.input;
+              }
+            });
+          });
+        } else {
+          this.data[this.inputData - 1].label = this.suffix + ':' + this.input;
+        }
+
+        let data={
+          id:this.chapterId,
+          chapterName:this.input
+        }
+        updateCourseChapter(data).then(res=>{
+
+        })
+
       },
 
       changeValue() {
@@ -294,6 +405,14 @@
         } else {
           this.data[this.inputData - 1].label = this.suffix + ':' + this.input;
         }
+
+        let data={
+          id:this.detailId,
+          name:this.input
+        }
+
+        updateCourseDetail(data).then(res=>{
+        })
       }
     }
   }

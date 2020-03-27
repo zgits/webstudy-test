@@ -12,9 +12,6 @@
       </el-select>
 
 
-      <el-button class="filter-item" icon="el-icon-delete" type="danger" @click="deleteApply">批量删除</el-button>
-
-
     </div>
 
         <el-table
@@ -26,43 +23,61 @@
           border
           show-pagination
         >
-          <el-table-column
-            type="selection"
-            width="50px"
-          />
           <el-table-column label="序号" type="index" width="50px" align="center" />
           <el-table-column
             prop="userName"
             label="申请者"
-            width="150px"
+            width="100px"
             align="center"
           />
           <el-table-column
             prop="time"
             label="申请时间"
-            width="220px"
+            width="190px"
+            sortable
+            align="center"
+          />
+          <el-table-column
+            prop="dealTime"
+            label="操作时间"
+            width="190px"
             sortable
             align="center"
           />
 
           <el-table-column
-            prop="type"
+            prop="objType"
             label="申请类型"
+            align="center"
           />
 
           <el-table-column
             prop="detail"
             label="详情"
-          />
+          >
+            <template slot-scope="scope">
+
+
+              <a :href="'http://localhost:3400/#/home'"
+                 target="_blank"
+                 v-if="scope.row.objTypeCode===1">用户地址</a>
+              <a :href="'http://localhost:3400/#/home'"
+                 target="_blank"
+                 v-if="scope.row.objTypeCode===2">课程地址</a>
+
+            </template>
+          </el-table-column>
 
           <el-table-column
-            prop="desc"
+            prop="applyDesc"
             label="描述"
           />
 
           <el-table-column
-            prop="reason"
-            label="备注 对未通过及通过"
+            prop="result"
+            label="结果及备注"
+            :show-overflow-tooltip="true"
+            width="100px"
           />
 
           <el-table-column
@@ -78,7 +93,7 @@
                 :underline="false"
                 icon="el-icon-check"
                 size="medium"
-                @click="doApply(scope.row.id,2)"
+                @click="doApply(scope.row.id,4)"
               >通过
               </el-link>
 
@@ -88,12 +103,12 @@
                 :underline="false"
                 icon="el-icon-close"
                 size="medium"
-                @click="doApply(scope.row.id,3)"
+                @click="doApply(scope.row.id,5)"
               >打回
               </el-link>
 
               <el-link
-                v-if="scope.row.status===3"
+                v-if="scope.row.status===5||scope.row.status===4"
                 type="primary"
                 :underline="false"
                 icon="el-icon-back"
@@ -103,14 +118,12 @@
               </el-link>
 
               <el-link
-                v-if="scope.row.status===2"
-                type="primary"
+                v-if="scope.row.status===6"
+                type="success"
                 :underline="false"
-                icon="el-icon-back"
                 size="medium"
-                @click="doApply(scope.row.id,1)"
-              >撤销
-              </el-link>
+                disabled
+              >该申请已删除</el-link>
 
             </template>
           </el-table-column>
@@ -131,62 +144,26 @@
 </template>
 
 <script>
+
+  import {
+    queryAll,changeStatus
+  } from '@/api/apply';
+
 export default {
   name: 'Apply',
   data() {
     return {
-      tableData: [
-        {
-          id: '12',
-          userName: '张孟超',
-          time: '2019-12-11 12:45:32',
-          creater: 'dev',
-          detail: '详情',
-          reason: 'xxxx',
-          status: 3
-        },
-        {
-          id: '122',
-          roleName: '张家烨',
-          createTime: '2019-12-11',
-          creater: 'dev',
-          reason: 'xxxx',
-          status: 2
-        },
-        {
-          id: '13',
-          roleName: '张家烨',
-          createTime: '2019-12-11',
-          creater: 'dev',
-          reason: 'xxxx',
-          status: 1
-        },
-        {
-          id: '123',
-          roleName: '张家烨',
-          createTime: '2019-12-11',
-          creater: 'dev',
-          reason: 'xxxx',
-          status: 3
-        }
-      ],
-
+      tableData:[],
       editDialogVisible: false, // 控制修改角色信息对话框是否显示
       addDialogVisible: false, // 控制增加角色信息对话框是否显示
-      totalNum: 20,
+      totalNum: 0,
       currPage: 1,
-      pageSize: 5,
-      // 修改用户信息的表单数据
-      editForm: {
-        userName: '',
-        phone: ''
-        // mobile: ''
-      },
+      pageSize: 10,
 
       ids:[],
       searchValue:'',
 
-      statusValue:[],
+      statusValue:'',
 
       statusArray:[
         {
@@ -194,11 +171,11 @@ export default {
           label:'未审核',
         },
         {
-          statusNum:2,
+          statusNum:4,
           label:'审核通过'
         },
         {
-          statusNum:3,
+          statusNum:5,
           label:'审核失败'
         },
       ],
@@ -214,8 +191,27 @@ export default {
     }
   },
   mounted() {
+    this.queryAllApply()
   },
   methods: {
+
+    queryAllApply(){
+      let data={
+        status:this.statusValue,
+        currPage:this.currPage,
+        pageSize:this.pageSize,
+      }
+
+      queryAll(data).then(res=>{
+        var result=res.data
+        this.currPage=result.pageNum
+        this.totalNum=result.total
+        this.pageSize=result.pageSize
+        this.tableData=result.list
+      })
+
+    },
+
 
     handleFilter() {
 
@@ -232,101 +228,38 @@ export default {
       console.log(this.ids);
     },
 
-    deleteApply(){
 
-
-      this.getIds()
-      console.log(this.ids)
-      this.ids=[];
-    },
-
-    getValueByStatus(status){
-      console.log(status)
-    },
-
-
-    queryApply(status) {
-      // this.loading=true;
-      // this.loading=false;
-
-      if (status == 1) {
-        this.loading = true
-        this.applying = 'primary'
-        this.failbutton = ''
-        this.passbutton = ''
-        this.allbutton = ''
-        this.failloading = false
-        this.passloading = false
-        this.allloading = false
-
-        // todo 请求
-
-        this.loading = false
-      } else if (status == 2) {
-        this.applying = ''
-        this.failbutton = ''
-        this.passbutton = 'primary'
-        this.allbutton = ''
-        this.loading = false
-        this.failloading = false
-        this.passloading = true
-        this.allloading = false
-
-        // todo 请求
-
-        this.passloading = false
-      } else if (status == 3) {
-        this.applying = ''
-        this.failbutton = 'primary'
-        this.passbutton = ''
-        this.allbutton = ''
-        this.loading = false
-        this.failloading = true
-        this.passloading = false
-        this.allloading = false
-
-        // todo 请求
-
-        this.failloading = false
-      } else {
-        this.applying = ''
-        this.failbutton = ''
-        this.passbutton = ''
-        this.allbutton = 'primary'
-        this.loading = false
-        this.failloading = false
-        this.passloading = false
-        this.allloading = true
-        status = null
-
-        console.log(status)
-
-        this.allloading = false
-      }
+    getValueByStatus(){
+      this.queryAllApply()
     },
 
     handleSizeChange(val) {
-      console.log(`每页 ${val} 条`)
+      this.pageSize=val
+      this.queryAllApply()
     },
     handleCurrentChange(val) {
-      console.log(`当前页: ${val}`)
+      this.currPage=val
+      this.queryAllApply()
     },
 
-    doApply(applyIds, status) {
+    doApply(applyId, status) {
       this.$prompt('备注', {
         confirmButtonText: '确定',
         cancelButtonText: '取消'
       }).then(({ value }) => {
-        // todo 请求
 
-        this.$message({
-          type: 'success',
-          message: '填写备注' + value + applyIds + status
-        })
-      }).catch(() => {
-        this.$message({
-          type: 'info',
-          message: '取消输入'
+        let params={
+          id:applyId,
+          status:status,
+          result:value
+        }
+
+        changeStatus(params).then(res=>{
+          this.$message({
+            type: 'success',
+            message: '操作成功'
+          })
+          this.queryAllApply()
         })
       })
     },
@@ -356,82 +289,10 @@ export default {
       // 表单内容重置为空
       this.$refs.editFormRef.resetFields() // 通过ref引用调用resetFields方法
     },
-    editRoleInfo() {
-      // todo 请求
-      this.$message({
-        message: '修改角色信息成功',
-        type: 'success',
-        offset: 150
-      })
-      // 关闭对话框
-      this.editDialogVisible = false
-    },
-    editRoleAuth() {
-      // todo 请求
-      console.log(this.$refs.tree.getCheckedKeys())
-
-      this.$message({
-        message: '修改角色权限成功',
-        type: 'success',
-        offset: 150
-      })
-      // 关闭对话框
-      this.editDialogVisible = false
-    },
-    // 点击按钮 修改用户信息
-    editUserInfo() {
-      // console.log(valid)
-      // if (!valid) return
-      // 可以发起修改用户信息的网络请求
-      // const { data: res } = await this.$http.put(
-      //     'users/' + this.editForm.id,
-      //     { email: this.editForm.email, mobile: this.editForm.mobile }
-      // )
-      // if (res.meta.status !== 200) {
-      //     return this.$message.error('修改用户信息失败！')
-      // }
-      this.$message({
-        message: '修改用户信息成功',
-        type: 'success',
-        offset: 150
-      })
-      // 关闭对话框
-      this.editDialogVisible = false
-      // 重新发起请求用户列表
-      // this.getUserList()
-    },
-    addRoleInfo(formName) {
-      this.$refs[formName].validate((valid) => {
-        if (valid) {
-          this.$refs[formName].resetFields()
-          this.$refs.tree.getCheckedKeys() // 获取的选择权限信息
-          // todo 请求
-          this.$message({
-            message: '添加角色信息成功',
-            type: 'success',
-            offset: 150
-          })
-          // 关闭对话框
-          this.addDialogVisible = false
-        } else {
-          return false
-        }
-      })
-    },
     addDialogClosed() {
       // 表单内容重置为空
       this.$refs.roleForm.resetFields() // 通过ref引用调用resetFields方法
     },
-    submitForm(formName) {
-      this.$refs[formName].validate((valid) => {
-        if (valid) {
-          alert('submit!')
-        } else {
-          console.log('error submit!!')
-          return false
-        }
-      })
-    }
 
   }
 }

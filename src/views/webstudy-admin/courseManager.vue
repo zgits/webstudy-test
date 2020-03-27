@@ -178,6 +178,14 @@
           >修改
           </el-link>
 
+          <el-link
+            type="danger"
+            :underline="false"
+            icon="el-icon-delete"
+            size="medium"
+            @click="deleteOne(scope.row.id)"
+          >删除
+          </el-link>
 
           <el-popconfirm
             icon="el-icon-question"
@@ -187,7 +195,7 @@
           >
 
             <el-link
-              v-if="scope.row.status===2"
+              v-if="scope.row.status===2||scope.row.status===4"
               slot="reference"
               type="warning"
               :underline="false"
@@ -206,7 +214,7 @@
           >
 
             <el-link
-              v-if="scope.row.status===3"
+              v-if="scope.row.status===3||scope.row.status===4"
               slot="reference"
               type="primary"
               :underline="false"
@@ -216,14 +224,6 @@
             </el-link>
           </el-popconfirm>
 
-          <el-link
-            type="danger"
-            :underline="false"
-            icon="el-icon-delete"
-            size="medium"
-            @click="deleteOne(scope.row.id)"
-          >删除
-          </el-link>
 
         </template>
       </el-table-column>
@@ -395,11 +395,19 @@
           },
           {
             status: 2,
-            label: '已上架'
+            label: '已上线'
           },
           {
             status: 3,
-            label: '已下架'
+            label: '已下线'
+          },
+          {
+            status:4,
+            label:'审核通过'
+          },
+          {
+            status:5,
+            label:'审核失败'
           }
         ],
         statusValue: '',

@@ -34,6 +34,7 @@
       <el-table-column
         type="selection"
         width="50px"
+        :selectable="checkSelectable"
       />
       <el-table-column label="序号" type="index" width="150px" align="center"/>
       <el-table-column
@@ -72,7 +73,7 @@
             :underline="false"
             icon="el-icon-edit"
             size="medium"
-            :disabled="scope.row.id===1||scope.row.id===2"
+            :disabled="scope.row.id===1||scope.row.id===2||scope.row.id===3"
             @click="showEditDialog(scope.row)"
           >修改
           </el-link>
@@ -82,7 +83,7 @@
             :underline="false"
             icon="el-icon-delete"
             size="medium"
-            :disabled="scope.row.id===1||scope.row.id===2"
+            :disabled="scope.row.id===1||scope.row.id===2||scope.row.id===3"
             @click="open(scope.row.id)"
           >删除
           </el-link>
@@ -236,6 +237,10 @@
     },
     methods: {
 
+      checkSelectable(row){
+        return !(row.id==1||row.id==2||row.id==3)
+      },
+
       getAllRoles() {
         let page = {
           currPage: this.currPage,
@@ -313,6 +318,9 @@
         this.roleForm.roleName = roleInfo.roleName
         this.roleForm.roleDesc = roleInfo.roleDesc
 
+        this.expandKeys = []
+        this.checkKeys = []
+
         this.getAllAuth()
         getRoleAuth(roleInfo.id).then(res => {
           this.checkKeys = res.data.authIds
@@ -327,19 +335,24 @@
         this.addDialogVisible = true
       },
       editDialogClosed() {
-        this.reset()
+        this.expandKeys = []
+        this.checkKeys = []
         this.editDialogVisible = false
       },
       editRoleInfo() {
+
+        console.log(this.roleForm)
+
         updateRole(this.roleForm).then(res => {
           this.$message({
             message: '修改角色信息成功',
             type: 'success',
             offset: 150
           })
+          this.getAllRoles()
         })
         // 关闭对话框
-        this.getAllRoles()
+
         this.editDialogVisible = false
 
       },
