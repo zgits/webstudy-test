@@ -132,12 +132,29 @@
               <el-form-item label="视频资源">
                 <el-upload
                   drag
-                  action="#"
-                  multiple
-                :headers="setHeader()"
+                  action="/courseDetail/upload"
+                  ref="uploadCourse"
+                  name="video"
+                  :on-success="handleVideoSuccess"
+                  :on-progress="uploadVideoProcess"
+                  :before-upload="beforeUploadVideo"
+                  :show-file-list="false"
+                  :data='courseConvert()'
+                  :headers="setHeader()"
                 >
-                  <i class="el-icon-upload"></i>
+                  <video v-if="videoForm.showVideoPath !='' && !videoFlag"
+                         :src="videoForm.showVideoPath"
+                         class="avatar video-avatar"
+                         controls="controls">
+                    您的浏览器不支持视频播放
+                  </video>
+                  <i v-else-if="videoForm.showVideoPath =='' && !videoFlag"
+                     class="el-icon-upload"></i>
                   <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                  <el-progress v-if="videoFlag == true"
+                               type="circle"
+                               :percentage="videoUploadPercent"
+                               ></el-progress>
                   <div class="el-upload__tip" slot="tip">只能上传视频文件在这里</div>
                 </el-upload>
 
@@ -148,20 +165,11 @@
           </div>
         </el-card>
       </el-col>
-      <!--      <el-col :span="8">-->
-      <!--        <el-card class="box-card">-->
-      <!--          <div slot="header" class="clearfix">-->
-      <!--            <span>Share</span>-->
-      <!--          </div>-->
-      <!--          <div class="component-item" style="height:420px;">-->
-      <!--          </div>-->
-      <!--        </el-card>-->
-      <!--      </el-col>-->
     </el-row>
 
 
     <el-button style="margin-top: 12px;" @click="next" v-if="this.step===1">下一步</el-button>
-    <el-button style="margin-top: 12px;" @click="" v-if="this.step===2">完成</el-button>
+    <el-button style="margin-top: 12px;" @click="showMessage" v-if="this.step===2">完成</el-button>
 
 
   </div>
@@ -181,9 +189,10 @@
     updateCourseDetail
   }
 
-  from "@/api/addCourse";
+    from "@/api/addCourse";
 
-  import { getToken } from '@/utils/auth'
+  import {getToken} from '@/utils/auth'
+  import store from '@/store'
 
 
   let id = 0;
@@ -202,8 +211,8 @@
           introduction: '',
           typeId: '',
           level: '',
-          learn:'',
-          baseKnowledge:'',
+          learn: '',
+          baseKnowledge: '',
         },
         data: [],
         input: '',//输入的值
@@ -211,11 +220,17 @@
         suffix: '',
         step: 1,
         courseId: '',//课程id
-        chapterId:'',//章节id
-        detailId:'',//小节id
+        chapterId: '',//章节id
+        detailId: '',//小节id
         types: [],//所有类别
-        typeIds:[],//选中类别
-        showChild:false,//显示小节修改
+        typeIds: [],//选中类别
+        showChild: false,//显示小节修改
+        videoFlag: false,//是否显示进度条
+        videoUploadPercent: "",//进度条的进度，
+        isShowUploadVideo: false,//显示上传按钮
+        videoForm: {
+          showVideoPath: ''
+        }
       };
     },
     mounted() {
@@ -226,15 +241,31 @@
 
     methods: {
 
-      setHeader(){
+      setHeader() {
         return {
-          'token':getToken()
+          'token': getToken()
         }
       },
 
-      convert(){
-        this.addForm.typeId=this.typeIds.join(',')
+      convert() {
+        this.addForm.typeId = this.typeIds.join(',')
         return this.addForm
+      },
+
+      courseConvert(){
+        return {
+          detailId:this.detailId
+        }
+      },
+
+      showMessage(){
+        this.$message({
+          type:'success',
+          message:'完成添加'
+        })
+        this.$router.replace({
+          path:'/course/courseManager'
+        })
       },
 
 
@@ -244,11 +275,60 @@
         this.$refs.upload.submit()
       },
 
-      fileSuccess(res, file){
+      //上传前回调
+      beforeUploadVideo(file) {
+        var fileSize = file.size / 1024 / 1024 < 100;
+        if (['video/mp4', 'video/ogg', 'video/flv', 'video/avi', 'video/wmv', 'video/rmvb', 'video/mov'].indexOf(file.type) == -1) {
+          this.$message({
+            type: 'error',
+            message: '请上传正确的视频格式'
+          })
+          return false;
+        }
+        if (!fileSize) {
+          this.$message({
+            type: 'error',
+            message: '视频大小不能超过100MB'
+          })
+          return false;
+        }
+        this.isShowUploadVideo = false;
+      },
+      //进度条
+      uploadVideoProcess(event, file, fileList) {
+        this.videoFlag = true;
+        this.videoUploadPercent = file.percentage.toFixed(0) * 1;
+      },
+      //上传成功回调
+      handleVideoSuccess(res, file) {
+        this.isShowUploadVideo = true;
+        this.videoFlag = false;
+        this.videoUploadPercent = 0;
 
-        if(res.code==0){
-          this.courseId=res.data
-        }else{
+        //后台上传地址
+        if (res.code == 0) {
+          this.videoForm.showVideoPath = res.data;
+        } else {
+          this.$message({
+            type: 'error',
+            message: res.msg
+          })
+        }
+      },
+
+      fileSuccess(res, file) {
+
+        if (res.code == 0) {
+          this.courseId = res.data
+        }else if (res.code==12) {
+          this.$message({
+            type: 'error',
+            message: res.msg
+          })
+          store.dispatch('user/resetToken').then(() => {
+            location.reload()
+          })
+        } else {
           this.$message({
             type: 'error',
             message: res.msg
@@ -259,39 +339,39 @@
       add() {
 
         id++;
-        let data={
-          courseId:this.courseId,
-          chapterName:'标题',
-          sequence:id
+        let data = {
+          courseId: this.courseId,
+          chapterName: '标题',
+          sequence: id
         }
-        addCourseChapter(data).then(res=>{
+        addCourseChapter(data).then(res => {
           console.log(res.data)
-          this.chapterId=res.data
+          this.chapterId = res.data
           this.data.push({
             id: id,
             label: '第' + (id) + '章:标题',
             children: [],
-            chapterId:res.data
+            chapterId: res.data
           });
         })
 
       },
 
-      append(node,data) {
+      append(node, data) {
         count++;
 
-        let param={
-          chapterId:data.chapterId,
-          name:'子标题',
-          sequence:count
+        let param = {
+          chapterId: data.chapterId,
+          name: '子标题',
+          sequence: count
         }
 
-        addCourseDetail(param).then(res=>{
+        addCourseDetail(param).then(res => {
 
           const newChild = {
             id: count,
             label: data.id + '-' + (data.children.length + 1) + ':子标题',
-            detailId:res.data,
+            detailId: res.data,
           };
           data.children.push(newChild);
         })
@@ -306,8 +386,8 @@
         children.splice(index, 1);
 
 
-        if (data.id<1000){
-          deleteCourseChapter(data.chapterId).then(res=>{
+        if (data.id < 1000) {
+          deleteCourseChapter(data.chapterId).then(res => {
             this.data.forEach(item => {
 
               if (item.id > data.id) {
@@ -326,8 +406,8 @@
 
             })
           })
-        } else{
-          deleteCourseDetail(data.detailId).then(res=>{
+        } else {
+          deleteCourseDetail(data.detailId).then(res => {
             this.data.forEach(item => {
 
               if (item.id > data.id) {
@@ -349,27 +429,24 @@
         }
 
 
-
       },
 
-      clickTree(data,node) {
+      clickTree(data, node) {
         this.suffix = data.label.split(":")[0];
         this.input = data.label.split(":")[1];
         this.inputData = data.id;
-        console.log("父节点"+node.parent)
 
-        if (data.id<1000){
-          this.chapterId=data.chapterId
-          this.showChild=false
-        } else{
-          this.detailId=data.detailId
-          this.showChild=true
+        if (data.id < 1000) {
+          this.chapterId = data.chapterId
+          this.showChild = false
+        } else {
+          this.detailId = data.detailId
+          this.showChild = true
         }
-        console.log(data);
       },
 
 
-      updateChapter(){
+      updateChapter() {
         if (this.inputData > 1000) {
           this.data.forEach(item => {
             item.children.forEach(child => {
@@ -382,13 +459,11 @@
           this.data[this.inputData - 1].label = this.suffix + ':' + this.input;
         }
 
-        let data={
-          id:this.chapterId,
-          chapterName:this.input
+        let data = {
+          id: this.chapterId,
+          chapterName: this.input
         }
-        updateCourseChapter(data).then(res=>{
-
-        })
+        updateCourseChapter(data)
 
       },
 
@@ -406,13 +481,12 @@
           this.data[this.inputData - 1].label = this.suffix + ':' + this.input;
         }
 
-        let data={
-          id:this.detailId,
-          name:this.input
+        let data = {
+          id: this.detailId,
+          name: this.input
         }
 
-        updateCourseDetail(data).then(res=>{
-        })
+        updateCourseDetail(data)
       }
     }
   }
