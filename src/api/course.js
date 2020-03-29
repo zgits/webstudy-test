@@ -1,5 +1,16 @@
 import request from '@/utils/request'
 
+
+export function queryChapter(data) {
+  return request({
+    url:'/courseChapter/queryByCourseId',
+    method:'get',
+    params:{
+      courseId:data
+    }
+  })
+}
+
 export function queryAllCourse(data) {
   return request({
     url:'/course/queryAllByPageForAdmin',

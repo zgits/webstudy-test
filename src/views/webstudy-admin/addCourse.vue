@@ -35,6 +35,7 @@
           multiple
           placeholder="请选择"
           style="width: 270px"
+          filterable
         >
           <el-option
             v-for="item in types"
@@ -144,7 +145,7 @@
                 >
                   <video v-if="videoForm.showVideoPath !='' && !videoFlag"
                          :src="videoForm.showVideoPath"
-                         class="avatar video-avatar"
+                         class="el-upload-dragger"
                          controls="controls">
                     您的浏览器不支持视频播放
                   </video>
@@ -345,11 +346,10 @@
           sequence: id
         }
         addCourseChapter(data).then(res => {
-          console.log(res.data)
           this.chapterId = res.data
           this.data.push({
             id: id,
-            label: '第' + (id) + '章:标题',
+            label: '第' + (this.data.length+1) + '章:标题',
             children: [],
             chapterId: res.data
           });
@@ -368,9 +368,16 @@
 
         addCourseDetail(param).then(res => {
 
+          var prefix = ''
+          for (let i = 0; i < this.data.length; i++) {
+            if (data.id == this.data[i].id) {
+              prefix = i+1
+              break
+            }
+          }
           const newChild = {
             id: count,
-            label: data.id + '-' + (data.children.length + 1) + ':子标题',
+            label: prefix + '-' + (data.children.length + 1) + ':子标题',
             detailId: res.data,
           };
           data.children.push(newChild);
@@ -379,7 +386,6 @@
       },
 
       remove(node, data) {
-        id--;
         const parent = node.parent;
         const children = parent.data.children || parent.data;
         const index = children.findIndex(d => d.id === data.id);
@@ -388,13 +394,14 @@
 
         if (data.id < 1000) {
           deleteCourseChapter(data.chapterId).then(res => {
-            this.data.forEach(item => {
 
+            var index=0
+
+            this.data.forEach(item => {
+              index++
               if (item.id > data.id) {
 
-
-                var tempId = --item.id;
-                item.id = tempId;
+                var tempId = index;
                 item.label = '第' + (tempId) + '章:' + item.label.split(":")[1];
 
                 item.children.forEach(child => {
@@ -408,22 +415,16 @@
           })
         } else {
           deleteCourseDetail(data.detailId).then(res => {
-            this.data.forEach(item => {
+            children.forEach(child => {
 
-              if (item.id > data.id) {
+              var index = child.label.split(':')
 
+              var detailLabel = index[0].split('-')
+              var detailIndex = detailLabel[1] - 1
 
-                var tempId = --item.id;
-                item.id = tempId;
-                item.label = '第' + (tempId) + '章:' + item.label.split(":")[1];
-
-                item.children.forEach(child => {
-                  child.label = tempId + "-" + child.label.split("-")[1];
-                })
-
+              if (child.id > data.id) {
+                child.label = detailLabel[0] + "-" + detailIndex + ':' + (child.label.split(":")[1]);
               }
-
-
             })
           })
         }

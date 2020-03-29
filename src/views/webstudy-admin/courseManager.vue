@@ -240,9 +240,9 @@
       @current-change="handleCurrentChange"
     />
 
-    <el-dialog title="修改课程信息" :visible.sync="editDialogVisible" width="40%" @close="editDialogClosed">
+    <el-dialog title="修改课程信息" :visible.sync="editDialogVisible" width="70%" @close="editDialogClosed">
 
-      <el-form ref="editFormRef" :model="editForm" label-width="70px" align="left">
+      <el-form v-if='active===0' ref="editFormRef" :model="editForm" label-width="70px" align="left">
 
         <el-form-item label="课程名称">
           <el-input v-model="editForm.className" style="width: 300px"/>
@@ -294,7 +294,10 @@
             :data='convert()'
             :headers="setHeader()"
           >
-            <i slot="default" class="el-icon-plus"/>
+            <el-image :src="editForm.coverPath" v-if="editForm.coverPath!=''">
+
+            </el-image>
+            <i slot="default" class="el-icon-plus"v-if="editForm.coverPath==''"/>
 
             <div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>
           </el-upload>
@@ -308,7 +311,114 @@
         </el-form-item>
       </el-form>
 
-      <span slot="footer" class="dialog-footer"/>
+
+      <el-row v-if="active===1" :gutter="20">
+        <el-col :span="8">
+          <el-card class="box-card" style="overflow: auto;width: 300px">
+            <div slot="header" class="clearfix">
+              <span>新建章节</span>
+            </div>
+            <div class="component-item" style="height:420px;">
+              <el-button style="width: 100%;" size="medium" type="primary" @click="add">新增章节</el-button>
+
+
+              <div class="custom-tree-container">
+                <div class="block">
+                  <el-tree
+                    :data="data"
+                    node-key="id"
+                    default-expand-all
+                    :expand-on-click-node="false"
+                    @node-click="clickTree">
+                  <span class="custom-tree-node" slot-scope="{ node, data }">
+        <span>{{ node.label }}</span>
+        <span>
+          <el-button
+            v-if="data.children"
+            type="text"
+            size="mini"
+            icon="el-icon-plus"
+            @click="() => append(node,data)">
+            新增
+          </el-button>
+          <el-button
+            type="text"
+            size="mini"
+            icon="el-icon-delete"
+            @click="() => remove(node, data)">
+            删除
+          </el-button>
+        </span>
+      </span>
+                  </el-tree>
+                </div>
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="8">
+          <el-card class="box-card" style="width: 460px">
+            <div slot="header" class="clearfix">
+              <span>编辑章节</span>
+            </div>
+            <div class="component-item" style="height:420px;">
+
+
+              <el-form label-width="50px" v-if="(!this.showChild)&&(this.data.length>0)">
+                <el-form-item label="标题">
+                  <el-input @change="updateChapter" v-model="input" placeholder='请输入内容'></el-input>
+
+                </el-form-item>
+
+              </el-form>
+              <el-form label-width="50px" v-if="this.showChild">
+                <el-form-item label="子标题">
+                  <el-input @change="changeValue" v-model="input" placeholder='请输入内容'></el-input>
+
+                </el-form-item>
+
+                <el-form-item label="视频资源">
+                  <el-upload
+                    drag
+                    action="/courseDetail/upload"
+                    ref="uploadCourse"
+                    name="video"
+                    :on-success="handleVideoSuccess"
+                    :on-progress="uploadVideoProcess"
+                    :before-upload="beforeUploadVideo"
+                    :show-file-list="false"
+                    :data='courseConvert()'
+                    :headers="setHeader()"
+                  >
+                    <video v-if="videoForm.showVideoPath !='' && !videoFlag"
+                           :src="videoForm.showVideoPath"
+                           controls="controls"
+                           class="el-upload-dragger"
+                           >
+                      您的浏览器不支持视频播放
+                    </video>
+                    <i v-else-if="videoForm.showVideoPath =='' && !videoFlag"
+                       class="el-icon-upload"></i>
+                    <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                    <el-progress v-if="videoFlag == true"
+                                 type="circle"
+                                 :percentage="videoUploadPercent"
+                    ></el-progress>
+                    <div class="el-upload__tip" slot="tip">只能上传视频文件在这里</div>
+                  </el-upload>
+
+                </el-form-item>
+              </el-form>
+
+
+            </div>
+          </el-card>
+        </el-col>
+      </el-row>
+
+      <span slot="footer" class="dialog-footer" v-if="active===1">
+        <el-button @click="finish">完成</el-button>
+      </span>
     </el-dialog>
 
   </div>
@@ -322,14 +432,30 @@
     queryAllCourse,
     deleteCourse,
     changeStatus,
-    queryAllType
+    queryAllType,
+    queryChapter,
   } from '@/api/course';
 
-  import {queryAll} from "@/api/addCourse";
+  import
+  {
+    addCourse,
+    queryAll,
+    addCourseChapter,
+    deleteCourseChapter,
+    updateCourseChapter,
+    addCourseDetail,
+    deleteCourseDetail,
+    updateCourseDetail
+  }
+
+    from "@/api/addCourse";
+
+  import store from '@/store';
 
   import {getToken} from '@/utils/auth'
 
-  let id = 1000
+  let id = 0;
+  let count = 1000;
   export default {
     name: 'CourseManager',
     data() {
@@ -351,6 +477,7 @@
           baseKnowledge: '',
           learn: '',
           id: '',
+          coverPath:'',
         },
         ids: [],
         searchValue: '',
@@ -402,12 +529,12 @@
             label: '已下线'
           },
           {
-            status:4,
-            label:'审核通过'
+            status: 4,
+            label: '审核通过'
           },
           {
-            status:5,
-            label:'审核失败'
+            status: 5,
+            label: '审核失败'
           }
         ],
         statusValue: '',
@@ -418,6 +545,22 @@
 
         typeIds: [], //已选中的类型值
         types: [], //全部子类型
+
+        active: 0,
+        data: [],//树形结构数据
+        input: '',//输入的值
+        inputData: '',
+        suffix: '',
+        courseId: '',//课程id
+        chapterId: '',//章节id
+        detailId: '',//小节id
+        showChild: false,//显示小节修改
+        videoFlag: false,//是否显示进度条
+        videoUploadPercent: "",//进度条的进度，
+        isShowUploadVideo: false,//显示上传按钮
+        videoForm: {
+          showVideoPath: ''
+        }
 
 
       }
@@ -431,10 +574,227 @@
 
       // this.$refs.multipleTable.clearSelection() 清除所选
 
-      updateCourse(){
+      finish() {
+        this.editDialogVisible = false
+        this.active = 0
+      },
+
+      add() {
+
+        id++;
+        let data = {
+          courseId: this.courseId,
+          chapterName: '标题',
+          sequence: id
+        }
+        addCourseChapter(data).then(res => {
+          console.log(res.data)
+          this.chapterId = res.data
+          this.data.push({
+            id: id,
+            label: '第' + (this.data.length + 1) + '章:标题',
+            children: [],
+            chapterId: res.data
+          });
+        })
+
+      },
+
+      append(node, data) {
+        count++;
+
+        let param = {
+          chapterId: data.chapterId,
+          name: '子标题',
+          sequence: count
+        }
+
+        addCourseDetail(param).then(res => {
+          var prefix = ''
+          for (let i = 0; i < this.data.length; i++) {
+            if (data.id == this.data[i].id) {
+              prefix = i+1
+              break
+            }
+          }
+          const newChild = {
+            id: count,
+            label: prefix + '-' + (data.children.length + 1) + ':子标题',
+            detailId: res.data,
+            chapterId: data.chapterId
+          };
+          data.children.push(newChild);
+        })
+
+      },
+
+      remove(node, data) {
+
+        const parent = node.parent;
+        const children = parent.data.children || parent.data;
+        const index = children.findIndex(d => d.id === data.id);
+        children.splice(index, 1);
+
+
+        if (data.id < 1000) {
+          deleteCourseChapter(data.chapterId).then(res => {
+
+            var index = 0
+
+            this.data.forEach(item => {
+
+              index++
+
+              if (item.id > data.id) {
+
+                var tempId = index;
+                item.label = '第' + (tempId) + '章:' + item.label.split(":")[1];
+
+                item.children.forEach(child => {
+                  child.label = tempId + "-" + (child.label.split("-")[1]);
+                })
+              }
+
+            })
+          })
+        } else {
+          deleteCourseDetail(data.detailId).then(res => {
+
+
+            children.forEach(child => {
+
+              var index = child.label.split(':')
+
+              var detailLabel = index[0].split('-')
+              var detailIndex = detailLabel[1] - 1
+
+              if (child.id > data.id) {
+                child.label = detailLabel[0] + "-" + detailIndex + ':' + (child.label.split(":")[1]);
+              }
+            })
+
+          })
+        }
+
+
+      },
+
+      clickTree(data, node) {
+        this.suffix = data.label.split(":")[0];
+        this.input = data.label.split(":")[1];
+        this.inputData = data.id;
+
+        if (data.id < 1000) {
+          this.chapterId = data.chapterId
+          this.showChild = false
+        } else {
+          this.detailId = data.detailId
+          this.videoForm.showVideoPath=data.videoPath
+
+          if (this.videoForm.showVideoPath==null){
+            this.videoForm.showVideoPath=''
+          }
+          this.showChild = true
+        }
+      },
+
+      updateChapter() {
+
+        console.log('inputData值' + this.inputData)
+
+        if (this.inputData > 1000) {
+          this.data.forEach(item => {
+            item.children.forEach(child => {
+              if (child.id == this.inputData) {
+                child.label = this.suffix + ':' + this.input;
+              }
+            });
+          });
+        } else {
+          this.data[this.inputData - 1].label = this.suffix + ':' + this.input;
+        }
+
+        let data = {
+          id: this.chapterId,
+          chapterName: this.input
+        }
+        updateCourseChapter(data)
+
+      },
+
+      changeValue() {
+
+        if (this.inputData > 1000) {
+          this.data.forEach(item => {
+            item.children.forEach(child => {
+              if (child.id == this.inputData) {
+                child.label = this.suffix + ':' + this.input;
+              }
+            });
+          });
+        } else {
+          this.data[this.inputData - 1].label = this.suffix + ':' + this.input;
+        }
+
+        let data = {
+          id: this.detailId,
+          name: this.input
+        }
+
+        updateCourseDetail(data)
+      },
+
+      //上传前回调
+      beforeUploadVideo(file) {
+        var fileSize = file.size / 1024 / 1024 < 100;
+        if (['video/mp4', 'video/ogg', 'video/flv', 'video/avi', 'video/wmv', 'video/rmvb', 'video/mov'].indexOf(file.type) == -1) {
+          this.$message({
+            type: 'error',
+            message: '请上传正确的视频格式'
+          })
+          return false;
+        }
+        if (!fileSize) {
+          this.$message({
+            type: 'error',
+            message: '视频大小不能超过100MB'
+          })
+          return false;
+        }
+        this.isShowUploadVideo = false;
+      },
+      //进度条
+      uploadVideoProcess(event, file, fileList) {
+        this.videoFlag = true;
+        this.videoUploadPercent = file.percentage.toFixed(0) * 1;
+      },
+      //上传成功回调
+      handleVideoSuccess(res, file) {
+        this.isShowUploadVideo = true;
+        this.videoFlag = false;
+        this.videoUploadPercent = 0;
+
+        //后台上传地址
+        if (res.code == 0) {
+          this.videoForm.showVideoPath = res.data;
+        } else {
+          this.$message({
+            type: 'error',
+            message: res.msg
+          })
+        }
+      },
+
+      courseConvert() {
+        return {
+          detailId: this.detailId
+        }
+      },
+
+
+      updateCourse() {
         this.$refs.upload.submit()
-          this.queryAll()
-          this.editDialogVisible=false
+        this.queryAll()
       },
 
       setHeader() {
@@ -448,15 +808,28 @@
         return this.editForm
       },
 
+      max(first, second) {
+        return first > second ? first : second
+      },
 
+
+      //修改课程基本信心成功后的函数
       fileSuccess(res, file) {
 
         if (res.code == 0) {
 
-          this.$message({
-            type: 'success',
-            message: '修改课程信息成功'
+          queryChapter(this.courseId).then(res => {
+            this.data = res.data
+            this.data.forEach(chapter => {
+              id = this.max(id, chapter.sequence)
+              chapter.id = chapter.sequence;
+              chapter.children.forEach(detail => {
+                detail.id = detail.sequence
+                count = this.max(count, detail.sequence)
+              })
+            })
           })
+          this.active = 1
         } else {
           this.$message({
             type: 'error',
@@ -645,10 +1018,13 @@
         this.editForm.level = courseInfo.levelCode
         this.editForm.className = courseInfo.className
         this.editForm.introduction = courseInfo.introduction
+        this.typeIds = []
         this.typeIds = courseInfo.typeIds.split(',').map(Number)
         this.editForm.baseKnowledge = courseInfo.baseKnowledge
         this.editForm.learn = courseInfo.learn
         this.editForm.id = courseInfo.id
+        this.editForm.coverPath = courseInfo.coverPath
+        this.courseId = courseInfo.id
       },
 
       showDialog(courseInfo) {
