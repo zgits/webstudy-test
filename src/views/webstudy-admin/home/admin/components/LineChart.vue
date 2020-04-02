@@ -6,6 +6,7 @@
 import echarts from 'echarts'
 require('echarts/theme/macarons') // echarts theme
 import resize from './mixins/resize'
+import {getSiteVisit} from "@/api/common";
 
 export default {
   mixins: [resize],
@@ -46,7 +47,10 @@ export default {
   },
   mounted() {
     this.$nextTick(() => {
-      this.initChart()
+      setTimeout(() =>{
+        this.initChart()
+      },500);
+
     })
   },
   beforeDestroy() {
@@ -61,72 +65,32 @@ export default {
       this.chart = echarts.init(this.$el, 'macarons')
       this.setOptions(this.chartData)
     },
-    setOptions({ expectedData, actualData } = {}) {
+    setOptions({ date, result } = {}) {
       this.chart.setOption({
-        xAxis: {
-          data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-          boundaryGap: false,
-          axisTick: {
-            show: false
-          }
-        },
-        grid: {
-          left: 10,
-          right: 10,
-          bottom: 20,
-          top: 30,
-          containLabel: true
+        title:{
+          text: '近7天网站访问量'
         },
         tooltip: {
           trigger: 'axis',
           axisPointer: {
-            type: 'cross'
-          },
-          padding: [5, 10]
-        },
-        yAxis: {
-          axisTick: {
-            show: false
+            type: 'cross',
+            label: {
+              backgroundColor: '#6a7985'
+            }
           }
         },
-        legend: {
-          data: ['expected', 'actual']
+        xAxis: {
+          type: 'category',
+          boundaryGap: false,
+          data: date
+        },
+        yAxis: {
+          type: 'value'
         },
         series: [{
-          name: 'expected', itemStyle: {
-            normal: {
-              color: '#FF005A',
-              lineStyle: {
-                color: '#FF005A',
-                width: 2
-              }
-            }
-          },
-          smooth: true,
+          data: result,
           type: 'line',
-          data: expectedData,
-          animationDuration: 2800,
-          animationEasing: 'cubicInOut'
-        },
-        {
-          name: 'actual',
-          smooth: true,
-          type: 'line',
-          itemStyle: {
-            normal: {
-              color: '#3888fa',
-              lineStyle: {
-                color: '#3888fa',
-                width: 2
-              },
-              areaStyle: {
-                color: '#f3f8ff'
-              }
-            }
-          },
-          data: actualData,
-          animationDuration: 2800,
-          animationEasing: 'quadraticOut'
+          areaStyle: {}
         }]
       })
     }

@@ -4,7 +4,7 @@
     <panel-group @handleSetLineChartData="handleSetLineChartData" />
 
     <el-row style="background:#fff;padding:16px 16px 0;margin-bottom:32px;">
-      <line-chart :chart-data="lineChartData" />
+      <line-chart :chart-data="lineChartData" v-if="this.lineChartData!=null"/>
     </el-row>
 
     <el-row :gutter="32">
@@ -33,6 +33,7 @@ import BarChart from './components/BarChart'
 import TransactionTable from './components/TransactionTable'
 import TodoList from './components/TodoList'
 import BoxCard from './components/BoxCard'
+import {getSiteVisit} from "@/api/common";
 
 const lineChartData = {
   newVisitis: {
@@ -68,13 +69,22 @@ export default {
   },
   data() {
     return {
-      lineChartData: lineChartData.newVisitis
+      lineChartData: {
+      },
     }
   },
   methods: {
     handleSetLineChartData(type) {
       this.lineChartData = lineChartData[type]
+    },
+    getVisit(){
+      getSiteVisit().then(res=>{
+        this.lineChartData=res.data
+      })
     }
+  },
+  mounted() {
+    this.getVisit();
   }
 }
 </script>
