@@ -207,6 +207,22 @@ export const asyncRoutes = [
       }
     ]
   },
+  {
+    path: '/log',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        component: () => import('@/views/webstudy-admin/log'),
+        name: '日志',
+        meta: {
+          title: '日志',
+          icon: 'bug',
+          affix: true
+        }
+      }
+    ]
+  },
 
 
 
