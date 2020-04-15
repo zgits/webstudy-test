@@ -37,6 +37,7 @@
       height="500"
       border
       show-pagination
+      v-loading="this.loading"
     >
       <el-table-column
         type="selection"
@@ -461,6 +462,7 @@
     data() {
       return {
 
+        loading: true,
         tableData: [],
 
         showDialogVisible: false,
@@ -868,6 +870,7 @@
           this.pageSize = result.pageSize
           this.totalNum = result.total
           this.tableData = result.list
+          this.loading=false
         })
       },
 

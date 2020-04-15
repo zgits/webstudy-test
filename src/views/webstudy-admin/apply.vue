@@ -22,6 +22,7 @@
           height="500"
           border
           show-pagination
+          v-loading="this.loading"
         >
           <el-table-column label="序号" type="index" width="50px" align="center" />
           <el-table-column
@@ -153,6 +154,7 @@ export default {
   name: 'Apply',
   data() {
     return {
+      loading:true,
       tableData:[],
       editDialogVisible: false, // 控制修改角色信息对话框是否显示
       addDialogVisible: false, // 控制增加角色信息对话框是否显示
@@ -184,7 +186,6 @@ export default {
       failbutton: '',
       passbutton: '',
       allbutton: '',
-      loading: false,
       failloading: false,
       passloading: false,
       allloading: false
@@ -208,6 +209,7 @@ export default {
         this.totalNum=result.total
         this.pageSize=result.pageSize
         this.tableData=result.list
+        this.loading=false
       })
 
     },

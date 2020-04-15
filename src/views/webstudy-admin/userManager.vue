@@ -25,6 +25,7 @@
       border
       show-pagination
       ref="multipleTable"
+      v-loading="this.loading"
     >
       <el-table-column
         type="selection"
@@ -267,6 +268,7 @@
     name: 'UserManager',
     data() {
       return {
+        loading: true,
         tableData: [],
         editDialogVisible: false, // 控制修改用户信息对话框是否显示
         addDialogVisible: false, // 控制新增用户信息对话框是否显示
@@ -322,6 +324,7 @@
           this.tableData.forEach(item=>{
             item.roles=item.roles.join(',')
           })
+          this.loading=false
         })
       },
 

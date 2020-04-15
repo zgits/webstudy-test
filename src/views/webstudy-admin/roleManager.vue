@@ -30,6 +30,7 @@
       height="500"
       border
       show-pagination
+      v-loading="this.loading"
     >
       <el-table-column
         type="selection"
@@ -204,6 +205,7 @@
 
     data() {
       return {
+        loading:true,
         tableData: [],
         data: [],
         addData: [],
@@ -252,6 +254,7 @@
           this.pageSize = data.pageSize
           this.totalNum = data.total
           this.tableData = data.list
+          this.loading=false
         })
       },
       getAllAuth() {
