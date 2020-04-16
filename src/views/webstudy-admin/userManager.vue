@@ -6,7 +6,7 @@
     <div class="filter-container">
 
       <el-input v-model="searchValue" placeholder="用户名/手机号" style="width: 200px;" class="filter-item"
-                @keyup.enter.native="this.handleFilter"/>
+                @keyup.enter.native="getUserData"/>
 
       <el-button class="filter-item" icon="el-icon-circle-plus-outline" type="primary" @click="addDialogVisible=true">
         添加用户
@@ -29,6 +29,7 @@
     >
       <el-table-column
         type="selection"
+        :selectable="checkSelectable"
       />
       <el-table-column
         prop="username"
@@ -81,7 +82,6 @@
       <el-table-column
         label="状态"
         width="220px"
-
       >
         <template slot-scope="scope">
           <el-switch
@@ -91,6 +91,7 @@
             inactive-text="禁止"
             :active-value=2
             :inactive-value=4
+            :disabled="scope.row.id==12"
             active-color="#13ce66"
             inactive-color="#ff4949"
             @change="changeStatus($event,scope.row.id)"
@@ -103,6 +104,7 @@
             inactive-text="禁止"
             :active-value=1
             :inactive-value=3
+            :disabled="scope.row.id==12"
             active-color="#13ce66"
             inactive-color="#ff4949"
             @change="changeStatus($event,scope.row.id)"
@@ -120,6 +122,7 @@
               type="primary"
               icon="el-icon-edit"
               size="small"
+              :disabled="scope.row.id==12"
               circle
               @click="showEditDialog(scope.row)"
             />
@@ -131,6 +134,7 @@
               icon="el-icon-delete"
               size="small"
               circle
+              :disabled="scope.row.id===12"
               @click="open(scope.row.id)"
             />
           </el-tooltip>
@@ -306,14 +310,18 @@
           this.allRoles=res.data
         })
       },
+      checkSelectable(row){
+        return !(row.id==12)
+      },
 
       getUserData() {
 
         let page={
           currPage:this.currPage,
-          pageSize:this.pageSize
+          pageSize:this.pageSize,
+          keyword:this.searchValue
         }
-
+        this.loading=true
         getAllUsers(page).then(res => {
           var data = res.data
 

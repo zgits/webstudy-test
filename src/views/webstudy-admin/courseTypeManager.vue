@@ -6,7 +6,7 @@
         placeholder="名称"
         style="width: 200px;"
         class="filter-item"
-        @keyup.enter.native="handleFilter"
+        @keyup.enter.native="getAllByPage"
       />
 
       <el-select
@@ -33,6 +33,7 @@
       height="500"
       border
       show-pagination
+      v-loading="this.loading"
     >
       <el-table-column type="selection" width="40px" />
 
@@ -168,7 +169,8 @@ export default {
         type: 0
       },
       parent: [], //方向
-      typeValue: ""
+      typeValue: "",
+      loading:true,
     };
   },
   methods: {
@@ -176,14 +178,17 @@ export default {
       let page = {
         currPage: this.currPage,
         pageSize: this.pageSize,
-        type: this.typeValue
+        type: this.typeValue,
+        keyword: this.searchValue
       };
+      this.loading=true
       queryAllByPage(page).then(res => {
         var data = res.data;
         this.currPage = data.pageNum;
         this.pageSize = data.pageSize;
         this.totalNum = data.total;
         this.tableData = data.list;
+        this.loading=false
       });
     },
 

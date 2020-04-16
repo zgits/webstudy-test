@@ -56,16 +56,12 @@ const actions = {
 
         var result=data.data
 
-        console.log(result.roles)
-
         commit('SET_ROLES', result.roles)
         commit('SET_NAME', result.username)
         commit('SET_AVATAR', result.imagePath)
         commit('SET_INTRODUCTION', 'introduction')
         resolve(result)
       }).catch(error => {
-
-        console.log('异常')
 
         reject(error)
       })

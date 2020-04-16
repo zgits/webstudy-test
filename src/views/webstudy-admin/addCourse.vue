@@ -194,6 +194,7 @@
 
   import {getToken} from '@/utils/auth'
   import store from '@/store'
+  import {getInfo} from '@/api/user'
 
 
   let id = 0;
@@ -235,6 +236,7 @@
       };
     },
     mounted() {
+      getInfo(getToken()),
       queryAll().then(res => {
         this.types = res.data
       })

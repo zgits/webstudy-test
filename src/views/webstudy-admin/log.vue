@@ -7,6 +7,7 @@
       style="width: 100%"
       height="500"
       show-pagination
+      v-loading="loading"
     >
       <el-table-column prop="params" label="请求参数" width="150px" align="center" :show-overflow-tooltip="true"/>
       <el-table-column prop="type" label="请求类型" width="150px" align="center"></el-table-column>
@@ -101,6 +102,7 @@
         currPage: 1,
         pageSize: 10,
         DialogVisible: false,
+        loading: true,
       };
     },
     methods: {
@@ -110,12 +112,14 @@
           pageSize: this.pageSize,
           type: this.typeValue
         };
+        this.loading = true
         queryLog(page).then(res => {
           var data = res.data;
           this.currPage = data.number + 1;
           this.pageSize = data.size;
           this.totalNum = data.totalElements;
           this.tableData = data.content;
+          this.loading = false
         });
       },
       handleSizeChange(val) {

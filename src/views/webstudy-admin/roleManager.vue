@@ -7,7 +7,7 @@
     <div class="filter-container">
 
       <el-input v-model="searchValue" placeholder="角色名称" style="width: 200px;" class="filter-item"
-                @keyup.enter.native="handleFilter"/>
+                @keyup.enter.native="getAllRoles"/>
 
       <el-button
         class="filter-item"
@@ -246,8 +246,10 @@
       getAllRoles() {
         let page = {
           currPage: this.currPage,
-          pageSize: this.pageSize
+          pageSize: this.pageSize,
+          keyword:this.searchValue
         }
+        this.loading=true
         queryAllRoles(page).then(res => {
           var data = res.data
           this.currPage = data.pageNum

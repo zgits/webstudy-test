@@ -6,7 +6,7 @@
     <div class="filter-container">
 
       <el-input v-model="searchValue" placeholder="课程名称" style="width: 200px;" class="filter-item"
-                @keyup.enter.native="handleFilter"/>
+                @keyup.enter.native="queryAll"/>
 
       <el-select class="filter-item" v-model="levelValue" placeholder="难度" clearable @change="queryAll">
         <el-option v-for="item in level" :key="item.levelnum" :label="item.label" :value="item.levelnum"></el-option>
@@ -294,6 +294,7 @@
             :on-success="fileSuccess"
             :data='convert()'
             :headers="setHeader()"
+            :file-list="files"
           >
             <el-image :src="editForm.coverPath" v-if="editForm.coverPath!=''">
 
@@ -308,7 +309,8 @@
         </el-form-item>
         <el-form-item>
           <el-button size="small" @click="editDialogVisible = false">取 消</el-button>
-          <el-button size="small" type="primary" @click="updateCourse">确 定</el-button>
+          <el-button size="small" type="primary" @click="finishBaseInfo">完成</el-button>
+          <el-button size="small" type="primary" @click="updateCourse">下一步</el-button>
         </el-form-item>
       </el-form>
 
@@ -562,7 +564,8 @@
         isShowUploadVideo: false,//显示上传按钮
         videoForm: {
           showVideoPath: ''
-        }
+        },
+        files:[]
 
 
       }
@@ -574,11 +577,10 @@
     },
     methods: {
 
-      // this.$refs.multipleTable.clearSelection() 清除所选
-      
       finish() {
         this.editDialogVisible = false
         this.active = 0
+        this.queryAll()
       },
 
       add() {
@@ -749,7 +751,7 @@
       //上传前回调
       beforeUploadVideo(file) {
         var fileSize = file.size / 1024 / 1024 < 100;
-        if (['video/mp4', 'video/ogg', 'video/flv', 'video/avi', 'video/wmv', 'video/rmvb', 'video/mov'].indexOf(file.type) == -1) {
+        if (['video/mp4', 'video/ogg', 'video/flv', 'video/avi', 'video/wmv', 'video/rmvb', 'video/mov', 'video/mkv'].indexOf(file.type) == -1) {
           this.$message({
             type: 'error',
             message: '请上传正确的视频格式'
@@ -799,6 +801,17 @@
         this.queryAll()
       },
 
+      finishBaseInfo() {
+
+        console.log('文件信息：'+this.files)
+
+        console.log('函数'+this.$refs.upload.submit())
+        this.editDialogVisible=false
+        this.active=0
+        this.queryAll()
+      },
+
+
       setHeader() {
         return {
           'token': getToken()
@@ -815,8 +828,10 @@
       },
 
 
-      //修改课程基本信心成功后的函数
+      //修改课程基本信息成功后的函数
       fileSuccess(res, file) {
+
+        console.log('更新消息')
 
         if (res.code == 0) {
 
@@ -862,8 +877,10 @@
           pageSize: this.pageSize,
           status: this.statusValue,
           level: this.levelValue,
-          typeId: this.typeValue
+          typeId: this.typeValue,
+          keyword: this.searchValue
         }
+        this.loading=true
         queryAllCourse(data).then(res => {
           var result = res.data
           this.currPage = result.pageNum
@@ -872,16 +889,6 @@
           this.tableData = result.list
           this.loading=false
         })
-      },
-
-
-      handleFilter() {
-
-        console.log(this.searchValue)
-        this.listLoading = true
-        setTimeout(() => {
-          this.listLoading = false
-        }, 1.5 * 1000)
       },
 
       deleteCourse() {
@@ -918,48 +925,6 @@
         })
       },
 
-
-      queryCourse(status) {
-        // this.loading=true;
-        // this.loading=false;
-
-        if (status == 2) {
-          this.onloading = true
-          this.online = 'primary'
-          this.downline = ''
-          this.downloading = false
-          this.all = ''
-          this.allloading = false
-
-          // todo 请求
-
-          this.onloading = false
-        } else if (status == 3) {
-          this.onloading = false
-          this.online = ''
-          this.downline = 'primary'
-          this.downloading = true
-          this.all = ''
-          this.allloading = false
-
-          // todo 请求
-
-          this.downloading = false
-        } else {
-          this.onloading = false
-          this.online = ''
-          this.downline = ''
-          this.downloading = false
-          this.all = 'primary'
-          this.allloading = true
-
-          status = null
-
-          console.log(status)
-
-          this.allloading = false
-        }
-      },
 
       changeStatus(courseId, status) {
         let data = {
@@ -1016,7 +981,8 @@
       showEditDialog(courseInfo) {
         this.editDialogVisible = true
 
-        console.log(courseInfo)
+
+        this.active=0
 
         this.editForm.level = courseInfo.levelCode
         this.editForm.className = courseInfo.className

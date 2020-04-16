@@ -60,10 +60,10 @@ export function addCourseDetail(data) {
  */
 export function deleteCourseDetail(ids) {
   return request({
-    url:'/courseDetail/deleteByIds',
-    method:'delete',
-    params:{
-      ids:ids
+    url: '/courseDetail/deleteByIds',
+    method: 'delete',
+    params: {
+      ids: ids
     }
   })
 }
@@ -74,9 +74,9 @@ export function deleteCourseDetail(ids) {
  */
 export function updateCourseDetail(data) {
   return request({
-    url:'/courseDetail/update',
-    method:'put',
-    params:data
+    url: '/courseDetail/update',
+    method: 'put',
+    params: data
   })
 }
 
