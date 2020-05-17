@@ -6,7 +6,7 @@
 import echarts from 'echarts'
 require('echarts/theme/macarons') // echarts theme
 import resize from './mixins/resize'
-import {getHotWord} from '@/api/common';
+import { getHotWord } from '@/api/common'
 
 const animationDuration = 6000
 
@@ -47,8 +47,7 @@ export default {
     initChart() {
       this.chart = echarts.init(this.$el, 'macarons')
 
-
-      getHotWord().then(res=>{
+      getHotWord().then(res => {
         this.chart.setOption({
           tooltip: {
             trigger: 'axis',
@@ -68,6 +67,9 @@ export default {
             data: res.data.keys,
             axisTick: {
               alignWithLabel: true
+            },
+            'axisLabel': {
+              interval: 0
             }
           }],
           yAxis: [{
