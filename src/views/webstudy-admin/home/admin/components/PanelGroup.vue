@@ -9,7 +9,7 @@
           <div class="card-panel-text">
             总用户数
           </div>
-          <count-to :start-val="0" :end-val="102400" :duration="2600" class="card-panel-num" />
+          <count-to :start-val="0" :end-val="this.userCount" :duration="3000" class="card-panel-num" />
         </div>
       </div>
     </el-col>
@@ -22,7 +22,7 @@
           <div class="card-panel-text">
             总课程数
           </div>
-          <count-to :start-val="0" :end-val="81212" :duration="3000" class="card-panel-num" />
+          <count-to :start-val="0" :end-val="this.courseCount" :duration="3000" class="card-panel-num" />
         </div>
       </div>
     </el-col>
@@ -31,14 +31,33 @@
 
 <script>
 import CountTo from 'vue-count-to'
+import { queryUserCount } from '@/api/userManager'
+import { queryCourseCount } from '@/api/course'
 
 export default {
   components: {
     CountTo
   },
+  data() {
+    return {
+      courseCount: 0,
+      userCount: 0
+    }
+  },
+  mounted() {
+    this.queryCount()
+  },
   methods: {
     handleSetLineChartData(type) {
       this.$emit('handleSetLineChartData', type)
+    },
+    queryCount() {
+      queryUserCount().then(res => {
+        this.userCount = res.data
+      })
+      queryCourseCount().then(res => {
+        this.courseCount = res.data
+      })
     }
   }
 }

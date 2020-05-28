@@ -4,15 +4,10 @@
     <panel-group @handleSetLineChartData="handleSetLineChartData" />
 
     <el-row style="background:#fff;padding:16px 16px 0;margin-bottom:32px;">
-      <line-chart :chart-data="lineChartData" v-if="this.lineChartData!=null"/>
+      <line-chart v-if="this.lineChartData!=null" :chart-data="lineChartData" />
     </el-row>
 
     <el-row :gutter="32">
-      <el-col :xs="24" :sm="24" :lg="12">
-        <div class="chart-wrapper">
-          <pie-chart />
-        </div>
-      </el-col>
       <el-col :xs="24" :sm="24" :lg="12">
         <div class="chart-wrapper">
           <bar-chart />
@@ -33,7 +28,7 @@ import BarChart from './components/BarChart'
 import TransactionTable from './components/TransactionTable'
 import TodoList from './components/TodoList'
 import BoxCard from './components/BoxCard'
-import {getSiteVisit} from "@/api/common";
+import { getSiteVisit } from '@/api/common'
 
 const lineChartData = {
   newVisitis: {
@@ -70,21 +65,21 @@ export default {
   data() {
     return {
       lineChartData: {
-      },
+      }
     }
+  },
+  mounted() {
+    this.getVisit()
   },
   methods: {
     handleSetLineChartData(type) {
       this.lineChartData = lineChartData[type]
     },
-    getVisit(){
-      getSiteVisit().then(res=>{
-        this.lineChartData=res.data
+    getVisit() {
+      getSiteVisit().then(res => {
+        this.lineChartData = res.data
       })
     }
-  },
-  mounted() {
-    this.getVisit();
   }
 }
 </script>

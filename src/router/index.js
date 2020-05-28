@@ -11,7 +11,7 @@ import componentsRouter from './modules/components'
 import chartsRouter from './modules/charts'
 import tableRouter from './modules/table'
 import nestedRouter from './modules/nested'
-import homeLayout from "../components/webStudy/homeLayout";
+import homeLayout from '../components/webStudy/homeLayout'
 
 /**
  * Note: sub-menu only appear when route children.length >= 1
@@ -223,9 +223,21 @@ export const asyncRoutes = [
       }
     ]
   },
-
-
-
+  {
+    path: '',
+    component: Layout,
+    children: [
+      {
+        path: '/courseDetail/:id',
+        component: () => import('@/views/webstudy-admin/courseDetail'),
+        name: '课程详情',
+        meta: {
+          title: '',
+          affix: false
+        }
+      }
+    ]
+  },
 
   // 404 page must be placed at the end !!!
   { path: '*', redirect: '/404', hidden: true }

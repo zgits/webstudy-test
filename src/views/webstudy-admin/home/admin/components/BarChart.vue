@@ -55,6 +55,11 @@ export default {
               type: 'shadow' // 默认为直线，可选为：'line' | 'shadow'
             }
           },
+          title: {
+            text: '关键字前十详情',
+            x: 'center',
+            y: 'top'
+          },
           grid: {
             top: 10,
             left: '2%',

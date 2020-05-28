@@ -1,15 +1,14 @@
 import request from '@/utils/request'
 
-
 /**
  * 更新用户基本信息
  * @param data
  */
 export function updateUserInfo(data) {
   return request({
-    url:'/user/updateUserById',
-    method:'put',
-    params:data
+    url: '/user/updateUserById',
+    method: 'put',
+    params: data
   })
 }
 
@@ -19,7 +18,7 @@ export function updateUserInfo(data) {
  */
 export function search(data) {
   return request({
-    url:'/user/'
+    url: '/user/'
   })
 }
 
@@ -28,11 +27,10 @@ export function search(data) {
  * @param data
  */
 export function updateUserRole(data) {
-
   return request({
-    url:'/user/changeUserRole',
-    method:'put',
-    params:data
+    url: '/user/changeUserRole',
+    method: 'put',
+    params: data
   })
 }
 
@@ -42,9 +40,9 @@ export function updateUserRole(data) {
  */
 export function getUserRole(data) {
   return request({
-    url:'/role/queryUserRoleIds',
-    method:'get',
-    params:data
+    url: '/role/queryUserRoleIds',
+    method: 'get',
+    params: data
   })
 }
 
@@ -53,8 +51,8 @@ export function getUserRole(data) {
  */
 export function getAllRoles() {
   return request({
-    url:'/role/queryAll',
-    method:'get'
+    url: '/role/queryAll',
+    method: 'get'
   })
 }
 
@@ -64,12 +62,11 @@ export function getAllRoles() {
  */
 export function addUser(data) {
   return request({
-    url:'/user/addUser',
-    method:'post',
-    params:data
+    url: '/user/addUser',
+    method: 'post',
+    params: data
   })
 }
-
 
 /**
  *  批量删除用户
@@ -77,10 +74,10 @@ export function addUser(data) {
  */
 export function deleteUsers(ids) {
   return request({
-    url:'/user/deleteUsers',
-    method:'delete',
-    params:{
-      ids:ids
+    url: '/user/deleteUsers',
+    method: 'delete',
+    params: {
+      ids: ids
     }
   })
 }
@@ -91,12 +88,11 @@ export function deleteUsers(ids) {
  */
 export function changeUserStatus(data) {
   return request({
-    url:'/user/changeStatus',
-    method:'put',
+    url: '/user/changeStatus',
+    method: 'put',
     params: data
   })
 }
-
 
 /**
  * 重置密码
@@ -104,24 +100,22 @@ export function changeUserStatus(data) {
  */
 export function resetPassword(data) {
   return request({
-    url:'/user/resetPassword',
-    method:'put',
-    params:data
+    url: '/user/resetPassword',
+    method: 'put',
+    params: data
   })
 }
-
 
 /**
  * 查询全部用户
  */
 export function getAllUsers(page) {
   return request({
-    url:'/user/queryAllUsers',
-    method:'get',
-    params:page
+    url: '/user/queryAllUsers',
+    method: 'get',
+    params: page
   })
 }
-
 
 export function login(data) {
   return request({
@@ -131,3 +125,13 @@ export function login(data) {
   })
 }
 
+/**
+ * 统计用户数量
+ * @returns {AxiosPromise}
+ */
+export function queryUserCount() {
+  return request({
+    url: '/user/queryUserCount',
+    method: 'get'
+  })
+}
